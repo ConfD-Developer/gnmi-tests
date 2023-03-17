@@ -23,9 +23,9 @@ class Requester(threading.Thread):
 
     def run(self) -> None:
         # TODO: this dumps the MultiThreaded thing exception for XR
-        for response in self.client.stub.Subscribe(self.requests(),
-                                                   metadata=self.client.metadata):
+        for response in self.client.subscribe(self.requests()):
             self.response_queue.put(response)
+        self.response_queue.put(None)
 
     def requests(self) -> t.Iterator[gnmi.SubscribeRequest]:
         while (slitem := self.slist_queue.get()) is not None:
@@ -37,30 +37,27 @@ class Requester(threading.Thread):
     def enqueue(self, item: SlistType) -> None:
         self.slist_queue.put(item)
 
-    def responses(self, wait: bool = True) -> t.Iterator[gnmi.SubscribeResponse]:
-        try:
-            while (response := self.response_queue.get(block=wait)) is not None:
-                yield response
-        except queue.Empty:
-            pass
+    def responses(self, timeout: int) -> t.Iterator[gnmi.SubscribeResponse]:
+        while (response := self.response_queue.get(timeout=timeout)) is not None:
+            yield response
 
 
 class SubscribeLibrary(CapabilitiesLibrary):
     "ROBOT test suite library for servicing the gNMI SubscribeRequest tests."
     ROBOT_LIBRARY_SCOPE = 'SUITE'
 
-    def __init__(self) -> None:
+    def __init__(self, extra_logs: bool = False) -> None:
+        super().__init__(extra_logs)
         self.paths: t.List[str] = []
         self.requester: t.Optional[Requester] = None
 
-    def test_teardown(self) -> None:
+    def close_client(self) -> None:
         self.paths = []
         if self.requester is not None:
             self.requester.enqueue(None)
-        super().test_teardown()
-        if self.requester is not None:
             self.requester.join(2)
         self.requester = None
+        super().close_client()
 
     def subscribe(self, mode: str, encoding: str) -> None:
         paths = [make_gnmi_path(path) for path in self.paths]
@@ -70,11 +67,11 @@ class SubscribeLibrary(CapabilitiesLibrary):
         self.requester.start()
         self.requester.enqueue(slist)
 
-    def check_updates(self) -> bool:
+    def check_updates(self, timeout: int) -> bool:
         # return the first notification update in the first nonempty response
         try:
             next(update
-                 for response in self.requester.responses()
+                 for response in self.requester.responses(timeout)
                  for update in response.update.update)
             return True
         except StopIteration:
@@ -83,13 +80,19 @@ class SubscribeLibrary(CapabilitiesLibrary):
     def subscription_paths(self, *paths: str) -> None:
         self.paths = paths
 
-    def check_responses_terminated(self, should_close: bool) -> bool:
+    def check_responses_terminated(self, should_close: bool, timeout: int) -> bool:
         terminated = False
-        for response in self.requester.responses():
-            assert not terminated, 'The server did not close the stream'
-            if response.sync_response:
-                terminated = True
-                if not should_close:
-                    # the stream does not need to be closed, exit now
-                    break
+        try:
+            for response in self.requester.responses(timeout):
+                assert not terminated, 'The server did not close the stream'
+                if response.sync_response:
+                    terminated = True
+                    if not should_close:
+                        # the stream does not need to be closed, exit now
+                        break
+        except queue.Empty:
+            if terminated:
+                raise AssertionError('The server did not close the stream')
+            else:
+                raise AssertionError('The server did not send sync_response')
         return terminated

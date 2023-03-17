@@ -6,20 +6,37 @@ Resource         Subscribe.resource
 
 Resource         gNMIClient.resource
 Test Setup       Setup gNMI Client
-Test Teardown    Teardown gNMI state
+Test Teardown    Close client
 
 
 *** Test Cases ***
 
-Basic subscription with "mode" parameter
+Basic subscription with mode ONCE
     [Tags]    sanity
-    [Documentation]    Test that the device correctly responds to all three
-    ...    "Subscribe" request modes.    No further functionality (such as actually
-    ...    polling the device) is tested.
-    [Template]    Subscribe ${mode} to default path with encoding JSON_IETF
-    STREAM
-    ONCE
-    POLL
+    [Documentation]    Test that the device correctly responds to "Subscribe"
+    ...    ONCE request.  No further functionality (such as actually polling
+    ...    the device) is tested.
+    Given subscription paths    ${GET-PATH}
+    And Subscription ONCE with encoding JSON_IETF
+    Then device responds
+
+Basic subscription with mode POLL
+    [Tags]    sanity
+    [Documentation]    Test that the device correctly responds to "Subscribe"
+    ...    POLL request.  No further functionality (such as actually polling
+    ...    the device) is tested.
+    Given subscription paths    ${GET-PATH}
+    And Subscription POLL with encoding JSON_IETF
+    Then device responds
+
+Basic subscription with mode STREAM
+    [Tags]    sanity
+    [Documentation]    Test that the device correctly responds to "Subscribe"
+    ...    STREAMS request.  No further functionality (such as actually polling
+    ...    the device) is tested.
+    Given subscription paths    ${GET-PATH}
+    And Subscription STREAM with encoding JSON_IETF
+    Then device responds
 
 Subscribe ONCE with supported "encoding" values
     [Tags]    sanity

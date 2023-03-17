@@ -6,16 +6,11 @@ Resource         gNMIClient.resource
 
 *** Keywords ***
 
-Subscribe ${mode} to default path with encoding ${encoding}
-    Given subscription paths    ${GET-PATH}
-    And Subscription ${mode} with encoding ${encoding}
-    Then device responds
-
 Subscription ${mode} with encoding ${encoding}
     Subscribe    ${mode}    ${encoding}
 
 Device responds
-    ${updates}=    Check updates
+    ${updates}=    Check updates    ${SUBSCRIPTION_TIMEOUT}
     Should be true    ${updates}
 
 Subscribe ONCE with supported encodings
@@ -36,6 +31,5 @@ Device sends terminated response series
 
 Device terminates
     [Arguments]    ${should_close}
-    [Timeout]    5 seconds
-    ${terminated}=    Check responses terminated    ${should_close}
-    Should be true    ${terminated}    "The server did not send sync_response"
+    ${terminated}=    Check responses terminated    ${should_close}    ${SUBSCRIPTION_TIMEOUT}
+    Should be true    ${terminated}    The server did not send sync_response

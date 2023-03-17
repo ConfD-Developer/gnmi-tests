@@ -29,3 +29,5 @@ gnmi_get_paths:
   - /interfaces-state/interface[name=state_if_10]
 
 oc_interface:
+
+subscription_timeout:  2  # how long to wait for incoming subscription responses
