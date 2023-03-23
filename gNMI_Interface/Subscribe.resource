@@ -6,30 +6,36 @@ Resource         gNMIClient.resource
 
 *** Keywords ***
 
+Subscribe ${mode} to default path with encoding ${encoding}
+    Given subscription paths    ${GET-PATH}
+    Then subscribe    ${mode}    ${encoding}
+    And close subscription
+
 Subscription ${mode} with encoding ${encoding}
     Subscribe    ${mode}    ${encoding}
 
 Device responds
-    ${updates}=    Check updates    ${SUBSCRIPTION_TIMEOUT}
-    Should be true    ${updates}
+    Check updates    ${SUBSCRIPTION-TIMEOUT}
 
 Subscribe ONCE with supported encodings
     @{encodings}=    last supported encodings
     FOR    ${encoding}    IN    @{encodings}
         Given subscription ONCE with encoding ${encoding}
         Then device responds
+        Close subscription
     END
 
 Device capabilities
     Get capabilities from device
 
-Device sends terminated response series and closes the stream
-    Device terminates    True
-
 Device sends terminated response series
-    Device terminates    False
+    Check responses terminated    ${SUBSCRIPTION-TIMEOUT}
 
-Device terminates
-    [Arguments]    ${should_close}
-    ${terminated}=    Check responses terminated    ${should_close}    ${SUBSCRIPTION_TIMEOUT}
-    Should be true    ${terminated}    The server did not send sync_response
+Device closes the stream
+    Check stream closed    ${SUBSCRIPTION-TIMEOUT}
+
+Subscription STREAM with mode ${stream-mode} with encoding ${encoding}
+    Subscribe    STREAM    ${encoding}    ${stream-mode}
+
+Device sends ON_CHANGE updates
+    Check on_change updates    ${SUBSCRIPTION-TIMEOUT}

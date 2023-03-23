@@ -11,32 +11,15 @@ Test Teardown    Close client
 
 *** Test Cases ***
 
-Basic subscription with mode ONCE
+Basic subscription with "mode" parameter
     [Tags]    sanity
-    [Documentation]    Test that the device correctly responds to "Subscribe"
-    ...    ONCE request.  No further functionality (such as actually polling
-    ...    the device) is tested.
-    Given subscription paths    ${GET-PATH}
-    And Subscription ONCE with encoding JSON_IETF
-    Then device responds
-
-Basic subscription with mode POLL
-    [Tags]    sanity
-    [Documentation]    Test that the device correctly responds to "Subscribe"
-    ...    POLL request.  No further functionality (such as actually polling
-    ...    the device) is tested.
-    Given subscription paths    ${GET-PATH}
-    And Subscription POLL with encoding JSON_IETF
-    Then device responds
-
-Basic subscription with mode STREAM
-    [Tags]    sanity
-    [Documentation]    Test that the device correctly responds to "Subscribe"
-    ...    STREAMS request.  No further functionality (such as actually polling
-    ...    the device) is tested.
-    Given subscription paths    ${GET-PATH}
-    And Subscription STREAM with encoding JSON_IETF
-    Then device responds
+    [Documentation]    Test that the device correctly responds to all three
+    ...    "Subscribe" request modes.    No further functionality (such as actually
+    ...    polling the device) is tested.
+    [Template]    Subscribe ${mode} to default path with encoding JSON_IETF
+    STREAM
+    ONCE
+    POLL
 
 Subscribe ONCE with supported "encoding" values
     [Tags]    sanity
@@ -66,7 +49,8 @@ Subscribe ONCE sends final message with "sync_response"
     ...    response with "sync_response".
     Given Subscription paths    ${GET-PATH}
     And Subscription ONCE with encoding JSON_IETF
-    Then Device sends terminated response series and closes the stream
+    Then Device sends terminated response series
+    And Device closes the stream
 
 Subscribe POLL sends final message with "sync_response"
     [Documentation]    When a POLL subscription is created, the device must
@@ -84,16 +68,12 @@ Subscribe STREAM sends final message with "sync_response"
     And Subscription POLL with encoding JSON_IETF
     Then Device sends terminated response series
 
-QOS marked subscriptions
-    [Tags]    unimplemented
-    # idk., what to test here?
-
-STREAM with TARGET_DEFINED mode
-    [Tags]    unimplemented
-    # same - nothing to test, really
-
 STREAM with ON_CHANGE mode
-    [Tags]    unimplemented
+    [Documentation]    ON_CHANGE subscriber expects to receive the initial set
+    ...    of responses and then, within a timeout, an updated leaf.
+    Given Subscription paths    ${SUBSCRIPTION-STREAM-PATH}
+    And Subscription STREAM with mode ON_CHANGE with encoding JSON_IETF
+    Then Device sends ON_CHANGE updates
 
 STREAM with SAMPLE mode
     [Tags]    unimplemented

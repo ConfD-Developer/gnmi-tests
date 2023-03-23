@@ -30,4 +30,5 @@ gnmi_get_paths:
 
 oc_interface:
 
-subscription_timeout:  2  # how long to wait for incoming subscription responses
+subscription-timeout:  2  # how long to wait for incoming subscription responses
+subscription-stream-path: /ietf-interfaces:interfaces/interface[name=if_1]   # path for stream testing
