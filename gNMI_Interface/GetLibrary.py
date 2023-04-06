@@ -17,10 +17,11 @@ class GetRequestParameters:
     encoding: int = None
     use_models: List[dict] = None
 
-    def to_kwargs(self, default_encoding: Optional[int]):
+    def to_kwargs(self, default_encoding: Optional[int], default_path: Optional[str]):
         return {
             'prefix': self.prefix,
-            'paths': [] if self.paths is None else self.paths,
+            'paths': default_path if default_path is not None
+                     else [] if self.paths is None else self.paths,
             'get_type': self.type,
             'encoding': self.encoding if self.encoding is not None
                         else default_encoding if default_encoding is not None
@@ -53,12 +54,16 @@ class GetLibrary(CapabilitiesLibrary):
         Uses internal state to manage request parameters and response data. """
     ROBOT_LIBRARY_SCOPE = 'SUITE'
 
-    default_encoding: Optional[str]
+    default_encoding: Optional[int]
+    default_path: Optional[str]
     params: GetRequestParameters
 
-    def __init__(self, enable_extra_logs = False, default_encoding: str = None) -> None:
-        super().__init__(enable_extra_logs)
-        self.default_encoding = encoding_str_to_int(default_encoding) if default_encoding is not None else None
+    def __init__(self, lib_config) -> None:
+        super().__init__(lib_config)
+        config_encoding = lib_config.default_encoding
+        self.default_encoding = encoding_str_to_int(config_encoding) \
+                                    if config_encoding is not None else None
+        self.default_path = lib_config.default_path or None
         self.params = GetRequestParameters()
 
     def get_last_updates_count(self):
@@ -112,8 +117,7 @@ class GetLibrary(CapabilitiesLibrary):
             Parameters of the request are set according to previously set values. """
         self.cleanup_last_request_results()
         try:
-            kwargs = self.params.to_kwargs(self.default_encoding)
-            # TODO - client should trace/log all request params!
+            kwargs = self.params.to_kwargs(self.default_encoding, self.default_path)
             trace(f"Dispatching GetRequest with parameters: {kwargs}")
             self.last_response = self._client.get_public(**kwargs)
         except Exception as ex:

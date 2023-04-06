@@ -3,7 +3,7 @@ Documentation    Generic device agnostic test suite for gNMI ``Get`` RPC/operati
 Test Tags        get
 
 Library          Collections
-Library          GetLibrary.py  ${ENABLE_EXTRA_LOGS}  ${DEFAULT_ENCODING}
+Library          GetLibrary.py  ${LIB_CONFIG}
 
 Resource         Get.resource
 Resource         gNMIClient.resource
@@ -104,29 +104,12 @@ Parameter "encoding" - invalid value gets Error response
 #     Log  Received ${model_count} model names from device. Starting to iterate:
 #     Verify Get for models  ${model_names}
 
-Get leaf for configured paths
-    [Documentation]    Verify that request for a specific leaf (declared in config file)
-    ...                YANG node can be issued against server, and that OK response with data is received.
-    [Tags]    leaf
-    [Template]    Iterate leaves "${leaves}" of path "${path}"
-    FOR  ${item}  IN  @{GNMI_GET_LEAF}
-        ${item.leaves}    ${item.path}
-    END
-
-Get list for configured paths
-    [Documentation]    Verify that request for a list YANG node (declared in config file)
-    ...                can be issued against server, and that OK response with data is received.
-    [Tags]    list
-    [Template]    Iterate container path "${path}"
-    FOR  ${path}  IN  @{GNMI_GET_LIST}
+Get configured paths
+    [Documentation]    Verify that generic request for an XPaths declared in config file
+    ...                can be issued against server, and that non-empty OK response with
+    ...                some data is received.
+    [Tags]    paths
+    [Template]    Iterate non-empty get path "${path}"
+    FOR  ${path}  IN  @{GNMI_GET_PATH}
         ${path}
-    END
-
-Get list-entry for configured paths
-    [Documentation]    Verify that request for a specific list entry (declared in config file)
-    ...                YANG node can be issued against server, and that OK response with data is received.
-    [Tags]    list
-    [Template]    Iterate list-entry path "${}" for keys "${}"
-    FOR  ${item}  IN  @{GNMI_GET_LIST_ENTRY}
-        ${item.path}    ${item.projections}
     END

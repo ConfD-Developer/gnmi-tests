@@ -11,9 +11,9 @@ class gNMIRobotLibrary(ABC):
     last_exception: Optional[Exception] = None
 
     """ Common gNMI related functionality used across Robot tests and all libraries inheriting. """
-    def __init__(self, enable_extra_logs = False) -> None:
+    def __init__(self, lib_config) -> None:
         self._client: Optional[ConfDgNMIClient] = None
-        if not enable_extra_logs:
+        if not lib_config.enable_extra_logs:
             # disable all confg_gnmi_ loggers to not pollute robot logs
             for name in logging.root.manager.loggerDict:
                 if name.startswith('confd_gnmi_'):
@@ -21,10 +21,13 @@ class gNMIRobotLibrary(ABC):
             # but keep the RPC one...
             logging.getLogger('confd_gnmi_rpc').disabled = False
 
-    def setup_client(self, host, port, username, passwd, insecure):
+    def setup_client(self, device_config):
         """ Initialize new gNMI client instance for dispatching the requests to server. """
-        self._client = ConfDgNMIClient(host=host, port=port, insecure=insecure,
-                                       username=username, password=passwd)
+        self._client = ConfDgNMIClient(host=device_config.host,
+                                       port=device_config.port,
+                                       insecure=device_config.insecure,
+                                       username=device_config.username,
+                                       password=device_config.password)
         trace('gNMI client connection OK')
 
     def close_client(self):

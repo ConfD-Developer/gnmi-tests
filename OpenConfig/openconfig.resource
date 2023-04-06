@@ -1,6 +1,6 @@
 *** Settings ***
 Documentation    Resources specific to OpenConfig telemetry testing.
-Library          ../gNMI_Interface/GetLibrary.py  ${ENABLE_EXTRA_LOGS}  ${DEFAULT_ENCODING}
+Library          ../gNMI_Interface/GetLibrary.py  ${LIB_CONFIG}
 Resource    ../gNMI_Interface/gNMIClient.resource
 
 

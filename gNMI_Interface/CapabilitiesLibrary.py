@@ -20,8 +20,8 @@ def empty_capabilities_data():
 class CapabilitiesLibrary(gNMIRobotLibrary):
     ROBOT_LIBRARY_SCOPE = 'SUITE'
 
-    def __init__(self, enable_extra_logs = False) -> None:
-        super().__init__(enable_extra_logs)
+    def __init__(self, lib_config) -> None:
+        super().__init__(lib_config)
         self._capabilities_data = empty_capabilities_data()
 
     def cleanup_capabilities(self) -> None:
