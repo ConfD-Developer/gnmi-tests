@@ -110,6 +110,6 @@ Get configured paths
     ...                some data is received.
     [Tags]    paths
     [Template]    Iterate non-empty get path "${path}"
-    FOR  ${path}  IN  @{GNMI_GET_PATH}
+    FOR  ${path}  IN  @{GNMI_GET_PATHS}
         ${path}
     END

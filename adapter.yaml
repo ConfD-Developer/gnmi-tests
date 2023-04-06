@@ -1,38 +1,31 @@
-# hostname of a target gNMI server
-host: 127.0.0.1
-# gNMI port
-port: 50061
-# gNMI server username for all gNMI requests
-username: admin
-# gNMI server password for all gNMI requests
-password: admin
-# insecure/certificate-based gNMI server mode for all requests
-insecure: true
+device_config:
+  # hostname of a target gNMI server
+  host: 127.0.0.1
+  # gNMI port
+  port: 50061
+  # gNMI server username for all gNMI requests
+  username: admin
+  # gNMI server password for all gNMI requests
+  password: admin
+  # insecure/certificate-based gNMI server mode for all requests
+  insecure: true
 
-# default_encoding - leave "empty" for no overload of default encoding for Get requests,
-# use standard values otherwise - JSON|BYTES|PROTO|ASCII|JSON_IETF
-default_encoding: # "None" for no overload of default encoding for Get requests
-
-# configuration of gNMI library - whether to disable internal implementation logs
-enable_extra_logs: False
+lib_config:
+  # whether to enable internal implementation logs
+  enable_extra_logs: false
+  # GetRequest Encoding parameter if not set by test-case
+  default_encoding:
+  # GetRequest Path parameter if not set by test-case
+  default_path:
 
 # ---- generic gNMI test cases settings
-
-gnmi_get_leaf:
-  - path: /interfaces-state/interface[name=state_if_2]/
-    leaves:
-      - name
-      - type
-
-gnmi_get_list:
+gnmi_get_paths:
+  - /interfaces-state/interface[name=state_if_2]/name
+  - /interfaces-state/interface[name=state_if_2]/type
   - /interfaces/interface
-
-gnmi_get_list_entry:
-  - path: /interfaces-state/interface
-    projections:
-      - name: state_if_1
-      - name: state_if_3
-      - name: state_if_7
-      - name: state_if_10
+  - /interfaces-state/interface[name=state_if_1]
+  - /interfaces-state/interface[name=state_if_3]
+  - /interfaces-state/interface[name=state_if_7]
+  - /interfaces-state/interface[name=state_if_10]
 
 oc_interface:
