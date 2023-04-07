@@ -18,14 +18,19 @@ class GetRequestParameters:
     use_models: List[dict] = None
 
     def to_kwargs(self, default_encoding: Optional[int], default_path: Optional[str]):
+        if self.paths is not None:
+            paths = self.paths
+        else:
+            paths = default_path if default_path is not None else []
+        if self.encoding is not None:
+            encoding = self.encoding
+        else:
+            encoding = default_encoding if default_encoding is not None else None
         return {
             'prefix': self.prefix,
-            'paths': default_path if default_path is not None
-                     else [] if self.paths is None else self.paths,
+            'paths': paths,
             'get_type': self.type,
-            'encoding': self.encoding if self.encoding is not None
-                        else default_encoding if default_encoding is not None
-                        else None
+            'encoding': encoding
         }
 
 
