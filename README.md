@@ -20,7 +20,7 @@ $ robot --version
 Robot Framework 6.0.2 (Python 3.8.10 on linux)
 ```
 
-Actual test-runs require that supplementary gNMI client code (located in `../src`, primarily `confd_gnmi_client.py` module) can be run successfully. See the `../README.md` for requirements if you run into some issues.
+Actual test-runs require that supplementary gNMI client code (located in sibling repository [gnmi-tools](https://github.com/ConfD-Developer/gnmi-tools), primarily `confd_gnmi_client.py` module) can be run successfully. See the `gnmi-tools`' `README.md` for requirements if you run into some issues.
 
 *Please note* that the referred README file contains a lot of extra information/details not needed for the test-runs, and we don't imply going through it whole if not needed/interested.
 
@@ -117,11 +117,11 @@ You can run tests without having any target device, e.g. to see an example test 
 
 ConfD gNMI adapter serves as an proof-of-concept implementation of gNMI enabled device. It utilizes the ConfD to run and service the model-specific requests for some of OpenConfig standard models. It includes a simple gNMI server written in Python to "proxy' the incoming gNMI requests into the ConfD database. It can also in in so called "demo" mode without actual ConfD demon required/running.
 
-For details on the tools supporting these ROBOT test suites, you can see the [README file](../docs/ConfD_gNMI_adapter.adoc).
+For details on the tools supporting these ROBOT test suites, you can see the `gnmi-tools`'s [README file](https://github.com/ConfD-Developer/gnmi-tools).
 
 Previously mentioned `adapter.yaml` file already contains all the variables settings needed for this use-case.
 
-To run the gNMI Adapter demo as a "backend" for these test runs, please see [README file](../docs/ConfD_gNMI_adapter.adoc#Running_gNMI_Adapter_demo)
+To run the gNMI Adapter demo as a "backend" for these test runs, please see the `gnmi-tool`'s README file's [section](https://github.com/ConfD-Developer/gnmi-tools/blob/main/docs/ConfD_gNMI_adapter.adoc#running-gnmi-adapter-demo).
 
 Quick command list to copy & test before digging to referred document:
 
