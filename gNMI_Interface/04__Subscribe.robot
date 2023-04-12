@@ -76,12 +76,16 @@ STREAM with ON_CHANGE mode
     Then Device sends ON_CHANGE updates
 
 STREAM with SAMPLE mode
-    [Tags]    unimplemented
+    [Documentation]    SAMPLE subscriber expects the initial set of responses
+    ...    and then samples over a configured number of intervals.
+    Given Subscription paths    ${SUBSCRIPTION-STREAM-PATH}
+    And Subscription STREAM with mode SAMPLE with encoding JSON_IETF
+    Then Device sends SAMPLE updates
 
-
-Subscribe ONCE with updates_only in the SubscriptionList
-    # Failure: Device does not respond, responds with an error, responds with an empty notification set or with a notification without updates, responds with incorrect encoding.
-    # Test is passed path to the data model, which contains limited number of elements. ONCE Subscription operation is invoked with updates_only field set in SubscriptionRequest. Test verifies only one SubscribeResponse with only sync_response set to true.
+STREAM with SAMPLE mode without redundancies
+    [Documentation]    This test verifies that the device sends periodic updates,
+    ...    the initial sample covers complete set of nodes, and following samples
+    ...    are without redundancies.
     [Tags]    unimplemented
 
 Basic functionality of the Subscribe POLL RPC .
@@ -89,18 +93,6 @@ Basic functionality of the Subscribe POLL RPC .
     # Failure: Device does not respond, responds with an error, responds with an empty notification set or with a notification without updates, responds with incorrect encoding.
     # Test is passed path to the data model, which contains limited number of elements. Subscription operation is invoked. First SubscriptionRequest is ONCE. After that POLL subscription requests are invoked with poll interval delay. Test verifies for each subscription data is received. Optionally, it can verify the data is the same as the one received in response for ONCE subscription. Test issues WARNING, if SubscriptionResponse stream is closed prematurely. Test issues WARNING if Updates in SubscriptionResponse are aggregated.
     [Tags]    unimplemented
-
-Subscribe POLL RPC with updates_only in the SubscriptionList.
-    # Parameters: common connection parameters, path, poll count, poll interval.
-    # Failure: Device does not respond, responds with an error, responds with an empty notification set or with a notification without updates, responds with incorrect encoding.
-    # Test is passed path to the data model, which contains limited number of elements. Subscription` operation is invoked. First SubscriptionRequest is ONCE with filled SubscriptionList containing updates_only set to true. This subscription is handled as ONCE subscription. After that, empty POLL subscription requests are invoked with poll interval delay. Test verifies for each subscription (also for initial ONCE) a SubscriptionResponse is received with only sync_response set to true (without other fields). Test issues WARNING, if SubscriptionResponse stream is closed prematurely. Test issues WARNING if Updates in SubscriptionResponse are aggregated.
-    [Tags]    unimplemented
-
-Basic functionality of the Subscribe STREAM RPC with ON_CHANGE mode.
-    # Parameters: common connection parameters, path, read count
-    # Failure: Device does not respond, responds with an error, responds with an empty notification set or with a notification without updates, responds with incorrect encoding.
-    # Test is passed path to the data model, which contains limited number of elements, where some of them periodically change (e.g. packet count on interface). STREAM` Subscription operation is invoked. First SubscriptionResponse contains all elements, next responses contains only changed elements. After read count parameter test ends (and subscription stream is closed). Test issues WARNING, if SubscriptionResponse stream is closed prematurely. Test issues WARNING if Updates in SubscriptionResponse are aggregated.
-    [TAGS]    unimplemented
 
 # TODO - Michal's backlog:
 

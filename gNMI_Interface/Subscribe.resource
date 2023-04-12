@@ -39,3 +39,6 @@ Subscription STREAM with mode ${stream-mode} with encoding ${encoding}
 
 Device sends ON_CHANGE updates
     Check on_change updates    ${SUBSCRIPTION-TIMEOUT}
+
+Device sends sample updates
+    Check sample updates    ${SAMPLE-PERIOD}    ${SAMPLE-COUNT}    ${SUBSCRIPTION-TIMEOUT}

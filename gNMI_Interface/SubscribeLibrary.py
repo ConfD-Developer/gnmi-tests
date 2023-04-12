@@ -1,18 +1,21 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 import typing as t
 import threading
 import queue
 
-from confd_gnmi_common import make_gnmi_path, encoding_str_to_int, add_path_prefix
+from confd_gnmi_common import make_gnmi_path, encoding_str_to_int
 from confd_gnmi_client import ConfDgNMIClient
 from CapabilitiesLibrary import CapabilitiesLibrary
+from gnmi_config import GNMIConfigTree, apply_response, UpdateType
 
 import grpc
 import gnmi_pb2 as gnmi
 
 SlistType = t.Optional[t.Union[gnmi.Poll, gnmi.SubscriptionList]]
+
+
+NO_SYNC_RESPONSE = 'The server did not send sync_response'
 
 
 class Requester(threading.Thread):
@@ -52,7 +55,7 @@ class Requester(threading.Thread):
     def enqueue(self, item: SlistType) -> None:
         self._slist_queue.put(item)
 
-    def responses(self, timeout: int) -> t.Iterator[gnmi.SubscribeResponse]:
+    def raw_responses(self, timeout: int) -> t.Iterator[gnmi.SubscribeResponse]:
         if not self.is_alive():
             # yield only queued updates
             for _ in range(self._response_queue.qsize()):
@@ -63,6 +66,15 @@ class Requester(threading.Thread):
             while (response := self._response_queue.get(timeout=timeout)) is not None:
                 yield response
             self.join()
+
+    def responses(self, timeout: int, msg: t.Optional[str] = None) \
+            -> t.Iterator[gnmi.SubscribeResponse]:
+        if msg is None:
+            msg = NO_SYNC_RESPONSE
+        try:
+            yield from self.raw_responses(timeout)
+        except queue.Empty as e:
+            raise AssertionError(msg) from e
 
 
 class SubscribeLibrary(CapabilitiesLibrary):
@@ -102,10 +114,10 @@ class SubscribeLibrary(CapabilitiesLibrary):
         # Check if there is a nonempty notification update
         try:
             next(update
-                 for response in self.requester.responses(timeout)
+                 for response in self.requester.raw_responses(timeout)
                  for update in response.update.update)
-        except StopIteration:
-            raise AssertionError('The server did not send any updates')
+        except StopIteration as e:
+            raise AssertionError('The server did not send any updates') from e
 
     def subscription_paths(self, *paths: str) -> None:
         self.paths = paths
@@ -115,101 +127,53 @@ class SubscribeLibrary(CapabilitiesLibrary):
             pass
 
     def _iterate_initial_responses(self, timeout: int) -> t.Iterator[gnmi.SubscribeResponse]:
-        try:
-            for response in self.requester.responses(timeout):
-                if response.sync_response:
-                    return
-                yield response
-        except queue.Empty:
-            pass
-        raise AssertionError('The server did not send sync_response')
+        yield from self._iterate_synced_responses(timeout, True)
+
+    def _iterate_synced_responses(self, timeout: int, abort_on_timeout: bool) \
+            -> t.Iterator[gnmi.SubscribeResponse]:
+        response_iterator = self.requester.responses(timeout) if abort_on_timeout \
+            else self.requester.raw_responses(timeout)
+        for response in response_iterator:
+            if response.sync_response:
+                return
+            yield response
 
     def check_stream_closed(self, timeout: int) -> None:
         NOT_CLOSED = 'The server did not close the stream'
         try:
-            next(self.requester.responses(timeout))
+            next(self.requester.raw_responses(timeout))
             # there still was something in the stream
             raise AssertionError(NOT_CLOSED)
         except StopIteration:
             # this is ok
             return
-        except queue.Empty:
+        except queue.Empty as e:
             # caused by timeout - the stream has not been closed
-            raise AssertionError(NOT_CLOSED)
+            raise AssertionError(NOT_CLOSED) from e
+
+    def get_initial_subscribe_config(self, timeout: int) -> GNMIConfigTree:
+        config = GNMIConfigTree()
+        for response in self._iterate_initial_responses(timeout):
+            apply_response(config, response, UpdateType.STRUCTURE)
+        return config
 
     def check_on_change_updates(self, timeout: int) -> None:
-        configs = GNMIConfigTree()
-        for response in self._iterate_initial_responses(timeout):
-            notif = response.update
-            for update in notif.update:
-                path = add_path_prefix(notif.prefix, update.path)
-                configs.update(path.elem, 0, update.val)
+        config = self.get_initial_subscribe_config(timeout)
         responses = False
-        for response in self.requester.responses(timeout):
-            notif = response.update
-            for update in notif.update:
-                responses = True
-                path = add_path_prefix(notif.prefix, update.path)
-                assert configs.update(path.elem, 0, update.val), 'received a non-update'
-        assert responses, 'no updates were received'
+        NO_UPDATES = 'No updates were received'
+        for response in self.requester.responses(timeout, NO_UPDATES):
+            responses = apply_response(config, response, UpdateType.VALUE)
+        assert responses, NO_UPDATES
 
-
-class GNMIConfig(ABC):
-    @abstractmethod
-    def update(self, elems: t.List[gnmi.PathElem], index: int, value: gnmi.TypedValue) -> bool: ...
-
-
-class GNMIConfigTree(GNMIConfig):
-    def __init__(self) -> None:
-        self.tree: t.Dict[str, GNMIConfig] = {}
-
-    @staticmethod
-    def new_child(elems: t.List[gnmi.PathElem], index: int) -> GNMIConfig:
-        if index + 1 == len(elems):
-            return GNMIConfigValue()
-        elif elems[index].key:
-            return GNMIConfigList(elems[index].key)
-        else:
-            return GNMIConfigTree()
-
-    def update(self, elems: t.List[gnmi.PathElem], index: int, value: gnmi.TypedValue) -> bool:
-        assert index < len(elems)
-        elem = elems[index]
-        if elem.name in self.tree:
-            child = self.tree[elem.name]
-        else:
-            child = self.new_child(elems, index)
-            self.tree[elem.name] = child
-        return child.update(elems, index + 1, value)
-
-
-class GNMIConfigList(GNMIConfig):
-    def __init__(self, initial_keyset: t.Dict[str, str]) -> None:
-        self.keys: t.Tuple[str, ...] = tuple(initial_keyset.keys())
-        self.instances: t.Dict[t.Tuple[str, ...], GNMIConfig] = {}
-
-    def update(self, elems: t.List[gnmi.PathElem], index: int, value: gnmi.TypedValue) -> bool:
-        assert 0 < index
-        assert elems[index-1].key
-        keyvals: t.Tuple[str, ...] = tuple(elems[index-1].key[k] for k in self.keys)
-        if keyvals in self.instances:
-            child = self.instances[keyvals]
-        else:
-            if index == len(elems):
-                child = GNMIConfigValue()
-            else:
-                child = GNMIConfigTree()
-            self.instances[keyvals] = child
-        return child.update(elems, index, value)
-
-
-class GNMIConfigValue(GNMIConfig):
-    def __init__(self) -> None:
-        self.value: gnmi.TypedValue = gnmi.TypedValue()
-
-    def update(self, elems: t.List[gnmi.PathElem], index: int, value: gnmi.TypedValue) -> bool:
-        assert index == len(elems)
-        if self.value == value:
-            return False
-        self.value = value
-        return True
+    def check_sample_updates(self, period: int, count: int, timeout: int) -> None:
+        initial_tree = self.get_initial_subscribe_config(timeout)
+        for index in range(count):
+            sample_tree = GNMIConfigTree()
+            sample_msg = f'Sample {index+1} not received within {period}'
+            cover_msg = f'Sample {index+1} does not cover the full tree'
+            response = next(self.requester.responses(period, sample_msg))
+            apply_response(sample_tree, response, UpdateType.STRUCTURE)
+            next_responses = self.requester.responses(timeout, cover_msg)
+            while not initial_tree.covered(sample_tree):
+                response = next(next_responses)
+                apply_response(sample_tree, response, UpdateType.STRUCTURE)
