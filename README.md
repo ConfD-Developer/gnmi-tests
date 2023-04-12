@@ -60,7 +60,7 @@ Whether you run tests against "real" device, or the "ConfD adapter" (see further
 For our case, this implies setting the **`PYTHONPATH`** variable for underlying python code to find all the required items spread across various directories of the project. Assuming you run the tests from current directory, you need to have following set for tests to run:
 
 ```bash
-PYTHONPATH=../src:./:./gNMI_Interface
+PYTHONPATH=../gnmi-tools/src:./:./gNMI_Interface
 ```
 
 either exported in current environment, or passed as env. variable when invoking robot commands mentioned further...
@@ -130,16 +130,16 @@ Quick command list to copy & test before digging to referred document:
   - with ConfD available (adapter API mode):
     ```
     make clean all start
-    ./src/confd_gnmi_server.py -t api  --insecure
+    ../gnmi-tools/src/confd_gnmi_server.py -t api  --insecure
     ```
 
   - or without ConfD (adapter DEMO mode):
     ```
     make clean gnmi_proto
-    ./src/confd_gnmi_server.py -t demo  --insecure
+    ./gnmi-tools/src/confd_gnmi_server.py -t demo  --insecure
     ```
 - run tests in other console:
 
     ```
-    PYTHONPATH=../src:./:./gNMI_Interface robot --variablefile adapter.yaml --include sanity ./
+    PYTHONPATH=../gnmi-tools/src:./:./gNMI_Interface robot --variablefile adapter.yaml --include sanity ./
     ```
