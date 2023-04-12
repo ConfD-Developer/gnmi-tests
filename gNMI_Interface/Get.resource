@@ -35,40 +35,9 @@ Verify Get for Encodings
         Verify root Get with Encoding  ${encoding}
     END
 
-Iterate leaves "${leaves}"" of path "${path}"
-    [Documentation]    Retrieve the item from specified path, and verify that response
-    ...                includes some data for it.
-    ...                Cleanup the gNMI library state after to allow other clean iterations.
-    Should Be True    ${leaves} is not ${None}  Missing leaves to test for path "${path}"!
-    Should Not Be Empty    ${leaves}
-    When Verify Get of  ${path}
-    FOR  ${leaf}  IN  @{leaves}
-        Run Keyword And Continue On Failure  Then Check Last Updates Include    ${leaf}
-    END
-    [Teardown]    Teardown gNMI state
-
-Iterate container path "${path}"
-    [Documentation]    Verify that ``GetRequest`` on a configured path pointing to a "container" node
+Iterate non-empty get path "${path}"
+    [Documentation]    Verify that ``GetRequest`` on a configured path pointing to a YANG node
     ...                succeeds and gets non-empty OK response.
     When Verify Get of  ${path}
     Then Check last updates not empty
-    [Teardown]    Teardown gNMI state
-
-Iterate get of list-entry "${path}" with "${keys}"
-    [Documentation]    Verify that ``GetRequest`` on a configured path pointing to a "list-entry" node
-    ...                succeeds and gets non-empty OK response.
-    [Tags]    robot:private
-    ${projections}=  Get projections from key dictionary  ${keys}
-    When Verify Get of  ${path}${projections}
-    Then Check last updates not empty
-    [Teardown]    Teardown gNMI state
-
-Iterate list-entry path "${path}" for keys "${keys}"
-    [Documentation]    Retrieve the item from specified path, and verify that response
-    ...                includes some data for it.
-    ...                Cleanup the gNMI library state after to allow other clean iterations.
-    [Tags]    robot:continue-on-failure
-    FOR  ${key_dictionary}  IN  @{keys}
-        Iterate get of list-entry "${path}" with "${key_dictionary}"
-    END
     [Teardown]    Teardown gNMI state

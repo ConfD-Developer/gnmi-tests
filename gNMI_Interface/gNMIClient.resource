@@ -14,7 +14,7 @@ Documentation    This is a common set of gNMI keywords used by all our Robot gNM
 Setup gNMI Client
     [Documentation]    Setup the connection to target device/gNMI server.
     ...                To be used as test suite setup method.
-    Setup client     ${HOST}  ${PORT}  ${USERNAME}  ${PASSWORD}  ${INSECURE}
+    Setup client     ${DEVICE_CONFIG}
 
 Close gNMI Client
     [Documentation]    Close the existing connection to target device/gNMI server.

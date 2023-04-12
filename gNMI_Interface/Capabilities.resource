@@ -1,7 +1,7 @@
 *** Settings ***
 Documentation    Resources specific to gNMI ``Capabilities`` RPC/operation.
 Library          Collections
-Library          CapabilitiesLibrary.py  ${ENABLE_EXTRA_LOGS}
+Library          CapabilitiesLibrary.py  ${LIB_CONFIG}
 
 
 *** Keywords ***
