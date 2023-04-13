@@ -18,6 +18,7 @@ Get container includes
 Iterate interface "config" includes leaf
     [Documentation]    Retrieve the configured interface's "config" container,
     ...                and verify that it includes the value with specified name.
+    ...
     ...                Cleanup the gNMI library state after to allow other clean iterations.
     [Arguments]    ${leaf_name}
     DataType set to    CONFIG
@@ -27,8 +28,9 @@ Iterate interface "config" includes leaf
 Iterate interface "state" includes leaf
     [Documentation]    Retrieve the configured interface's "state" container,
     ...                and verify that it includes the value with specified name.
+    ...
     ...                Cleanup the gNMI library state after to allow other clean iterations.
     [Arguments]    ${leaf_name}
-    DataType set to    OPERATIONAL
+    DataType set to    STATE
     Get container includes  /interfaces/interface[name=${OC_INTERFACE}]/state  ${leaf_name}
     [Teardown]    Teardown gNMI state

@@ -34,7 +34,7 @@ Supported encodings include JSON or JSON_IETF
 
 Device should support some models
     [Tags]    models
-    [Documentation]  Check that the ``supported_models`` returned on ``CapabilityRequest`
+    [Documentation]  Check that the ``supported_models`` returned on ``CapabilityRequest``
     ...              contain at least one or more models.
     When Loaded Capabilities from device
     Then Supported models should not be empty

@@ -29,15 +29,14 @@ Get "interfaces" with no parameters
 
 Get "interfaces" with "type" parameter
     [Documentation]    Verify that OK response is retrieved for ``GetRequest`` having ``type=``
-    ...                parameter with any of the defined ``DataType``s.
+    ...                parameter with any of the ALL/CONFIG/STATE ``DataType``s.
     [Tags]  type
     [Template]  Iterate path "${path}" with DataType ${type}
     interfaces  ALL
     interfaces  CONFIG
     interfaces  STATE
-    interfaces  OPERATIONAL
 
-Get "interfaces" for various "path" parameter values
+Get "interfaces" - basic form
     [Documentation]    Verify that various valid formats of root container/list
     ...                can be requested using ``path=`` parameter, and are responded to correctly.
     [Tags]  path  costly
@@ -45,6 +44,10 @@ Get "interfaces" for various "path" parameter values
     # no namespace
     interfaces
     interfaces/interface
+
+Get "interfaces" - variously placed namespace
+    [Tags]  path  namespace  costly
+    [Template]    Iterate Get of
     # root namespace
     openconfig-interfaces:interfaces
     openconfig-interfaces:interfaces/interface
@@ -84,7 +87,7 @@ Try reading non-existing list entry from "/interfaces/interface"
     [Tags]  negative  list
     Given Paths include  /interfaces/interface[name=non-existing-interface]
     When Dispatch Get Request
-    Then Should Received Error Response
+    Then Should Not Receive Data Response
 
 Read "prefix=/interfaces", "path=interface[]" list entries one by one
     [Documentation]    Verify that list can be iterated with separate prefix/path parameters.
@@ -115,26 +118,26 @@ Get "CONFIG" response does not include "state" container
     When Verify Get of  /interfaces/interface[name=${OC_INTERFACE}]
     Then Check last updates not include    state
 
-Get "OPERATIONAL" response includes "state" container
-    [Documentation]    Verify that ``GetRequest`` with ``type=OPERATIONAL`` parameter receives
+Get "STATE" response includes "state" container
+    [Documentation]    Verify that ``GetRequest`` with ``type=STATE`` parameter receives
     ...                OK response that does include the read/write YANG "state" container.
-    [Tags]  operational  container
-    Given DataType set to    OPERATIONAL
+    [Tags]  state  container
+    Given DataType set to    STATE
     When Verify Get of  /interfaces/interface[name=${OC_INTERFACE}]
     Then Check last updates include  state
 
-Get "OPERATIONAL" response does not include "config" container
-    [Documentation]    Verify that ``GetRequest`` with ``type=OPERATIONAL`` parameter receives
+Get "STATE" response does not include "config" container
+    [Documentation]    Verify that ``GetRequest`` with ``type=STATE`` parameter receives
     ...                OK response that does not include the read-only YANG "config" container.
-    [Tags]  operational  container  negative
-    DataType set to    OPERATIONAL
+    [Tags]  state  container  negative
+    DataType set to    STATE
     Verify Get of  /interfaces/interface[name=${OC_INTERFACE}]
     Check last updates not include  config
 
 Get "ALL" response includes both "config" and "state" containers
     [Documentation]    Verify that ``GetRequest`` with ``type=ALL`` parameter receives
     ...                OK response that does include both read-write "config" and read-only "state" containers.
-    [Tags]  config  operational  container
+    [Tags]  config  state  container
     DataType set to    ALL
     Verify Get of  /interfaces/interface[name=${OC_INTERFACE}]
     Check last updates include  config
@@ -153,9 +156,9 @@ Get "config" response includes significant leaves
     enabled
 
 Get "state" response includes significant leaves
-    [Documentation]    Verify that ``GetRequest`` with ``type=OPERATIONAL`` parameter receives
+    [Documentation]    Verify that ``GetRequest`` with ``type=STATE`` parameter receives
     ...                OK response that does include standardized leaf names/items.
-    [Tags]  operational  leaf
+    [Tags]  state  leaf
     # TODO - add all items to verify deviation from full official OC YANG?
     [Template]    Iterate interface "state" includes leaf
     name
@@ -175,9 +178,9 @@ Get "config" works for all supported encodings
     Skip
 
 Get "state" works for all supported encodings
-    [Documentation]    Verify that ``GetRequest`` with ``type=OPERATIONAL``
+    [Documentation]    Verify that ``GetRequest`` with ``type=STATE``
     ...                and ``path=interfaces/interface[]/state`` parameters receives
     ...                OK response for all/any of the supported ``encoding` parameter values.
-    # [Tags]  operational  container  encoding
+    # [Tags]  state  container  encoding
     [Tags]    unimplemented
     Skip

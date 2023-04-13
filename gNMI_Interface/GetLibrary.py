@@ -51,7 +51,8 @@ class UpdatePayload:
         return UpdatePayload(path=path, value_type=value_type, value=value)
 
     def is_empty(self):
-        return not self.value
+        value_is_empty = not self.value
+        return value_is_empty
 
 
 class GetLibrary(CapabilitiesLibrary):
@@ -160,10 +161,23 @@ class GetLibrary(CapabilitiesLibrary):
     def check_last_updates_not_include(self, text: str) -> bool:
         assert not self._updates_include(text), f"Unexpected \"{text}\" found in some of updates!"
 
-    def check_last_updates_not_empty(self) -> bool:
+    def _last_updates_not_empty(self) -> bool:
         last_updates = self.get_last_flattened_updates()
         non_empty_contents = not any(update.is_empty() for update in last_updates)
+        return non_empty_contents
+
+    def check_last_updates_not_empty(self) -> bool:
+        """ Verify that last updates are not empty, and include some data. """
+        non_empty_contents = self._last_updates_not_empty()
         assert non_empty_contents, "No updates with payload from last request!"
+
+    def should_not_receive_data_response(self):
+        """ Verify that last request ended either with negative response from server,
+            or with ok response containing no data. """
+        got_error = self.last_response is None and self.last_exception is not None
+        got_empty = not self._last_updates_not_empty()
+        message = 'Didn\'t receive expected empty or error response'
+        self._assert_condition(got_error or got_empty, message)
 
     def test_teardown(self):
         super().test_teardown()
