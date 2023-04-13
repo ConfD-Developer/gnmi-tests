@@ -107,7 +107,7 @@ class GetLibrary(CapabilitiesLibrary):
     def datatype_set_to(self, data_type: str):
         """ Set the `DataType` parameter of the next `GetRequest` to specified value. """
         self.params.type = datatype_str_to_int(data_type, no_error=True)
-        trace(f"next GetRequest encoding set to: {self.params.type} (input: {data_type})")
+        trace(f"next GetRequest datatype set to: {self.params.type} (input: {data_type})")
 
     def paths_include(self, path: str):
         """ Add a path parameter into collected array for next `GetRequest`. """
