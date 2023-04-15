@@ -81,8 +81,8 @@ class SubscribeLibrary(CapabilitiesLibrary):
     "ROBOT test suite library for servicing the gNMI SubscribeRequest tests."
     ROBOT_LIBRARY_SCOPE = 'SUITE'
 
-    def __init__(self, extra_logs: bool = False) -> None:
-        super().__init__(extra_logs)
+    def __init__(self, lib_config: t.Dict[str, t.Any]) -> None:
+        super().__init__(lib_config)
         self.paths: t.Tuple[str, ...] = ()
         self.requester: t.Optional[Requester] = None
 

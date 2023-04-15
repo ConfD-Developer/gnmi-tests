@@ -6,13 +6,16 @@ Resource         gNMIClient.resource
 
 *** Keywords ***
 
-Subscribe ${mode} to default path with encoding ${encoding}
+Subscribe ${mode} to default path with default encoding
     Given subscription paths    ${GET-PATH}
-    Then subscribe    ${mode}    ${encoding}
+    Then subscribe    ${mode}    ${lib_config.default_encoding}
     And close subscription
 
 Subscription ${mode} with encoding ${encoding}
     Subscribe    ${mode}    ${encoding}
+
+Subscription ${mode} with default encoding
+    Subscription ${mode} with encoding ${lib_config.default_encoding}
 
 Device responds
     Check updates    ${SUBSCRIPTION-TIMEOUT}
@@ -34,8 +37,8 @@ Device sends terminated response series
 Device closes the stream
     Check stream closed    ${SUBSCRIPTION-TIMEOUT}
 
-Subscription STREAM with mode ${stream-mode} with encoding ${encoding}
-    Subscribe    STREAM    ${encoding}    ${stream-mode}
+Subscription STREAM with mode ${stream-mode} with default encoding
+    Subscribe    STREAM    ${lib_config.default_encoding}    ${stream-mode}
 
 Device sends ON_CHANGE updates
     Check on_change updates    ${SUBSCRIPTION-TIMEOUT}

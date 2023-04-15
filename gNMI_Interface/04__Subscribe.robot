@@ -16,7 +16,7 @@ Basic subscription with "mode" parameter
     [Documentation]    Test that the device correctly responds to all three
     ...    "Subscribe" request modes.    No further functionality (such as actually
     ...    polling the device) is tested.
-    [Template]    Subscribe ${mode} to default path with encoding JSON_IETF
+    [Template]    Subscribe ${mode} to default path with default encoding
     STREAM
     ONCE
     POLL
@@ -33,14 +33,14 @@ Two subscriptions in single request with the same "path"
     [Documentation]    Verify that the device can handle ONCE subscription
     ...    with two identical paths.
     Given subscription paths    ${GET-PATH}    ${GET-PATH}
-    And subscription ONCE with encoding JSON_IETF
+    And subscription ONCE with default encoding
     Then device responds
 
 Two subscriptions in single request with different "path"
     [Documentation]    Verify that the device can handle ONCE subscription
     ...    with two different paths.
     Given subscription paths    ${GET-PATH}    ${SECONDARY-PATH}
-    And subscription ONCE with encoding JSON_IETF
+    And subscription ONCE with default encoding
     Then device responds
 
 Subscribe ONCE sends final message with "sync_response"
@@ -48,7 +48,7 @@ Subscribe ONCE sends final message with "sync_response"
     ...    respond with a series of responses terminated by an empty
     ...    response with "sync_response".
     Given Subscription paths    ${GET-PATH}
-    And Subscription ONCE with encoding JSON_IETF
+    And Subscription ONCE with default encoding
     Then Device sends terminated response series
     And Device closes the stream
 
@@ -57,7 +57,7 @@ Subscribe POLL sends final message with "sync_response"
     ...    send an initial set of responses terminated by an empty
     ...    response with "sync_response".
     Given Subscription paths    ${GET-PATH}
-    And Subscription POLL with encoding JSON_IETF
+    And Subscription POLL with default encoding
     Then Device sends terminated response series
 
 Subscribe STREAM sends final message with "sync_response"
@@ -65,21 +65,21 @@ Subscribe STREAM sends final message with "sync_response"
     ...    send an initial set of responses terminated by an empty
     ...    response with "sync_response".
     Given Subscription paths    ${GET-PATH}
-    And Subscription POLL with encoding JSON_IETF
+    And Subscription POLL with default encoding
     Then Device sends terminated response series
 
 STREAM with ON_CHANGE mode
     [Documentation]    ON_CHANGE subscriber expects to receive the initial set
     ...    of responses and then, within a timeout, an updated leaf.
     Given Subscription paths    ${SUBSCRIPTION-STREAM-PATH}
-    And Subscription STREAM with mode ON_CHANGE with encoding JSON_IETF
+    And Subscription STREAM with mode ON_CHANGE with default encoding
     Then Device sends ON_CHANGE updates
 
 STREAM with SAMPLE mode
     [Documentation]    SAMPLE subscriber expects the initial set of responses
     ...    and then samples over a configured number of intervals.
     Given Subscription paths    ${SUBSCRIPTION-STREAM-PATH}
-    And Subscription STREAM with mode SAMPLE with encoding JSON_IETF
+    And Subscription STREAM with mode SAMPLE with default encoding
     Then Device sends SAMPLE updates
 
 STREAM with SAMPLE mode without redundancies

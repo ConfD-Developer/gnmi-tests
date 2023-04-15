@@ -124,6 +124,7 @@ def verify_update(config: GNMIConfig, path: gnmi.Path, update: gnmi.Update,
 def apply_response(config: GNMIConfig, response: gnmi.SubscribeResponse,
                    minimal_update: UpdateType = UpdateType.NONE) -> bool:
     notif = response.update
+    have_updates = False
     for update in notif.update:
         have_updates = True
         path = add_path_prefix(update.path, notif.prefix)
