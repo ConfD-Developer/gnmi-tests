@@ -1,0 +1,37 @@
+oc-interface-paths:
+  # /interfaces/interface/config:
+  #   - enabled
+  #   - loopback-mode
+  #   - mtu
+  #   - name
+  #   - type
+  /interfaces/interface/state:
+    - admin-status
+    - counters/carrier-transitions
+    - counters/in-broadcast-pkts
+    - counters/in-discards
+    - counters/in-errors
+    - counters/in-fcs-errors
+    - counters/in-multicast-pkts
+    - counters/in-octets
+    - counters/in-pkts
+    - counters/in-unicast-pkts
+    - counters/in-unknown-protos
+    # - counters/last-clear
+    - counters/out-broadcast-pkts
+    - counters/out-discards
+    - counters/out-errors
+    - counters/out-multicast-pkts
+    - counters/out-octets
+    - counters/out-pkts
+    - counters/out-unicast-pkts
+    # - description
+    - enabled
+    - ifindex
+    - last-change
+    - logical
+    - loopback-mode
+    - mtu
+    - name
+    - oper-status
+    - type

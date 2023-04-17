@@ -3,6 +3,7 @@ Documentation    Generic device agnostic test suite for gNMI ``Subscribe`` RPC/o
 Test Tags        subscribe
 
 Resource         Subscribe.resource
+Library          SubscribeLibrary.py  ${LIB_CONFIG}
 
 Resource         gNMIClient.resource
 Test Setup       Setup gNMI Client
