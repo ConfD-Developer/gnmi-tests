@@ -41,7 +41,7 @@ Subscription STREAM with mode ${stream-mode} with default encoding
     Subscribe    STREAM    ${lib_config.default_encoding}    ${stream-mode}
 
 Device sends ON_CHANGE updates
-    Check on_change updates    ${SUBSCRIPTION-TIMEOUT}
+    Check on_change updates    ${SUBSCRIPTION-TIMEOUT}    ${SUBSCRIPTION-UPDATE-TIME}
 
 Device sends sample updates
     Check sample updates    ${SAMPLE-PERIOD}    ${SAMPLE-COUNT}    ${SUBSCRIPTION-TIMEOUT}

@@ -3,6 +3,7 @@ from __future__ import annotations
 import typing as t
 import threading
 import queue
+from datetime import datetime as dt
 
 from confd_gnmi_common import make_gnmi_path, encoding_str_to_int
 from confd_gnmi_client import ConfDgNMIClient
@@ -157,19 +158,29 @@ class SubscribeLibrary(CapabilitiesLibrary):
             apply_response(config, response, UpdateType.STRUCTURE)
         return config
 
-    def check_on_change_updates(self, timeout: int) -> None:
+    def check_on_change_updates(self, timeout: int, update_time: int) -> None:
         config = self.get_initial_subscribe_config(timeout)
+        self._wait_on_change_updates(config, timeout, update_time)
+
+    def _wait_on_change_updates(self, config: GNMIConfigTree, timeout: int, update_time) -> None:
         responses = False
         NO_UPDATES = 'No updates were received'
-        for response in self.requester.responses(timeout, NO_UPDATES):
-            responses = apply_response(config, response, UpdateType.VALUE)
+        now = dt.now()
+        try:
+            for response in self.requester.raw_responses(timeout):
+                responses = apply_response(config, response, UpdateType.VALUE)
+                if (dt.now() - now).seconds >= update_time:
+                    break
+        except queue.Empty:
+            if (dt.now() - now).seconds < update_time:
+                raise AssertionError(NO_UPDATES)
         assert responses, NO_UPDATES
 
     def check_sample_updates(self, period: int, count: int, timeout: int) -> None:
         initial_tree = self.get_initial_subscribe_config(timeout)
         for index in range(count):
             sample_tree = GNMIConfigTree()
-            sample_msg = f'Sample {index+1} not received within {period}'
+            sample_msg = f'Sample {index+1} not received within {period} seconds'
             cover_msg = f'Sample {index+1} does not cover the full tree'
             response = next(self.requester.responses(period, sample_msg))
             apply_response(sample_tree, response, UpdateType.STRUCTURE)

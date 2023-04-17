@@ -5,3 +5,4 @@ subscription-timeout: 5
 
 sample-period: 7
 sample-count: 3
+subscription-update-time:  7  # for how long we should monitor on-change updates

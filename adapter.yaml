@@ -14,7 +14,7 @@ lib_config:
   # whether to enable internal implementation logs
   enable_extra_logs: false
   # GetRequest Encoding parameter if not set by test-case
-  default_encoding:
+  default_encoding: JSON_IETF
   # GetRequest Path parameter if not set by test-case
   default_path:
 
@@ -30,6 +30,12 @@ gnmi_get_paths:
 
 oc_interface:
 
+oc-interface-paths:
+  /openconfig-interfaces:interfaces/interface/config:
+    - name
+    - type
+
 subscription-timeout:  2  # how long to wait for incoming subscription responses
 subscription-stream-path: /ietf-interfaces:interfaces/interface[name=if_1]   # path for stream testing
 sample-period: 5
+subscription-update-time:  5  # for how long we should monitor on-change updates
