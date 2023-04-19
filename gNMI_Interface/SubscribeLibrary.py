@@ -26,6 +26,7 @@ class Requester(threading.Thread):
         self._slist_queue: queue.Queue[SlistType] = queue.Queue()
         self._response_queue: queue.Queue[gnmi.SubscribeResponse] = queue.Queue()
         self._responses: t.Optional[gnmi.SubscribeResponse] = None
+        self._runner_error: t.Optional[Exception] = None
 
     def run(self) -> None:
         self._responses = self.client.subscribe(self.requests())
@@ -40,7 +41,8 @@ class Requester(threading.Thread):
                 # some devices throw this when the request stream is closed
                 pass
             else:
-                raise
+                # let the main thread know
+                self._runner_error = err
         finally:
             self._response_queue.put(None)
 
@@ -67,6 +69,7 @@ class Requester(threading.Thread):
             while (response := self._response_queue.get(timeout=timeout)) is not None:
                 yield response
             self.join()
+        assert self._runner_error is None, 'server failed with ' + str(self._runner_error)
 
     def responses(self, timeout: int, msg: t.Optional[str] = None) \
             -> t.Iterator[gnmi.SubscribeResponse]:
