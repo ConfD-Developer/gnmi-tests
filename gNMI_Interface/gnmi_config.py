@@ -11,10 +11,18 @@ from confd_gnmi_common import add_path_prefix, make_formatted_path
 import gnmi_pb2 as gnmi
 
 
-T = t.TypeVar('T', bound='UpdateIndex')
+UpIxT = t.TypeVar('UpIxT', bound='UpdateIndex')
 
 
 class UpdateType(Enum):
+    '''Type of configuration tree update.
+
+    Three instances are supported:
+
+    - NONE - no update at all
+    - VALUE - only a value has been updated
+    - STRUCTURE - a new leaf or a full subtree has been created
+    '''
     NONE = (0, '')
     VALUE = (1, 'value update')
     STRUCTURE = (2, 'structural update')
@@ -30,24 +38,32 @@ class UpdateType(Enum):
         return self if self.value >= other.value else other
 
 
-class GNMIConfig(ABC, t.Generic[T]):
+class GNMIConfig(ABC, t.Generic[UpIxT]):
+    '''Configuration tree representation.'''
     type: t.Optional[str] = None
 
     @abstractmethod
-    def update(self, T) -> UpdateType: ...
+    def update(self, UpIxT) -> UpdateType: ...
 
     @abstractmethod
     def __repr__(self) -> str: ...
 
 
-class UpdateIndex(ABC, t.Generic[T]):
+class UpdateIndex(ABC, t.Generic[UpIxT]):
+    '''A pointer into a update data, either a path and value or a JSON tree.
+
+    An update from a gNMI server consists of a path and a value.  The
+    update needs to be applied to the current configuration tree and
+    instances of this class serve as pointers into the path or into
+    the value while gradually applying them.
+    '''
     @abstractmethod
-    def config_class(self) -> t.Type[GNMIConfig[T]]: ...
+    def config_class(self) -> t.Type[GNMIConfig[UpIxT]]: ...
 
     @abstractmethod
-    def new_child(self) -> GNMIConfig[T]: ...
+    def new_child(self) -> GNMIConfig[UpIxT]: ...
 
-    def rectify_config_type(self, config: GNMIConfig) -> GNMIConfig[T]:
+    def rectify_config_type(self, config: GNMIConfig) -> GNMIConfig[UpIxT]:
         assert isinstance(config, self.config_class()), \
             f'expected config {self.config_class().type}, received {config.type}'
         return config
@@ -57,6 +73,7 @@ TreeIndexT = t.Union['PathTreeIndex', 'JsonTreeIndex']
 
 
 class GNMIConfigTree(GNMIConfig[TreeIndexT]):
+    '''Configuration tree instance.'''
     type = 'tree'
 
     def __init__(self) -> None:
@@ -79,6 +96,7 @@ class GNMIConfigTree(GNMIConfig[TreeIndexT]):
 
 
 class GNMIConfigList(GNMIConfig['PathListIndex']):
+    '''Representation of a list configuration.'''
     type = 'list'
 
     def __init__(self, initial_keyset: t.Dict[str, str]) -> None:
@@ -106,6 +124,7 @@ ValueIndexT = t.Union['JsonValueIndex', 'PlainValueIndex']
 
 
 class GNMIConfigValue(GNMIConfig[ValueIndexT]):
+    '''Plain value configuration.'''
     type = 'value'
 
     def __init__(self) -> None:
@@ -121,7 +140,8 @@ class GNMIConfigValue(GNMIConfig[ValueIndexT]):
         return UpdateType.VALUE
 
 
-class PathIndex(UpdateIndex[T]):
+class PathIndex(UpdateIndex[UpIxT]):
+    '''Pointer into a gNMI path with the value'''
     def __init__(self, elems: t.List[gnmi.PathElem], index: int, value: gnmi.TypedValue) -> None:
         self.elems = elems
         self.index = index
@@ -130,10 +150,11 @@ class PathIndex(UpdateIndex[T]):
 
 
 class PathTreeIndex(PathIndex['PathTreeIndex']):
+    '''Pointer into a gNMI path at a point that corresponds to a tree (i.e. a container).'''
     def config_class(self):
         return GNMIConfigTree
 
-    def subindices(self) -> t.Iterable[t.Tuple[str, PathIndex]]:
+    def subindices(self) -> t.Iterable[t.Tuple[str, UpdateIndex]]:
         elem = self.elems[self.index]
         if elem.key:
             yield elem.name, PathListIndex(self.elems, self.index, self.value)
@@ -147,10 +168,11 @@ class PathTreeIndex(PathIndex['PathTreeIndex']):
 
 
 class PathListIndex(PathIndex['PathListIndex']):
+    '''Pointer into a gNMI path that corresponds to a list.'''
     def config_class(self):
         return GNMIConfigList
 
-    def subindex(self) -> PathIndex:
+    def subindex(self) -> UpdateIndex:
         if self.index + 1 == len(self.elems):
             return new_value_index(self.value)
         else:
@@ -167,7 +189,9 @@ JsonPrimitiveT = t.Union[int, str, float]
 JsonValueT = t.Union[JsonPrimitiveT, t.Dict[str, 'JsonValueT']]
 
 
-def new_value_index(value: gnmi.TypedValue):
+def new_value_index(value: gnmi.TypedValue) \
+        -> t.Union[PlainValueIndex, JsonTreeIndex, JsonValueIndex]:
+    '''Create a new index from a value - either plain value or a JSON thing.''' 
     if value.HasField('json_ietf_val'):
         return new_json_index(json.loads(value.json_ietf_val))
     else:
@@ -175,7 +199,8 @@ def new_value_index(value: gnmi.TypedValue):
         return PlainValueIndex(value.ListFields()[0][1])
 
 
-def new_json_index(value: JsonValueT) -> t.Union['JsonTreeIndex', 'JsonValueIndex']:
+def new_json_index(value: JsonValueT) -> t.Union[JsonTreeIndex, JsonValueIndex]:
+    '''Create new JSON-based index.'''
     if isinstance(value, dict):
         return JsonTreeIndex(value)
     else:
@@ -183,6 +208,7 @@ def new_json_index(value: JsonValueT) -> t.Union['JsonTreeIndex', 'JsonValueInde
 
 
 class JsonValueIndex(UpdateIndex['JsonValueIndex']):
+    '''Pointer at a JSON tree leaf.'''
     def __init__(self, value: JsonPrimitiveT) -> None:
         self.value = value
 
@@ -194,6 +220,7 @@ class JsonValueIndex(UpdateIndex['JsonValueIndex']):
 
 
 class PlainValueIndex(UpdateIndex['PlainValueIndex']):
+    '''Plain value "index".'''
     def __init__(self, value: t.Any) -> None:
         self.value = value
 
@@ -205,6 +232,7 @@ class PlainValueIndex(UpdateIndex['PlainValueIndex']):
 
 
 class JsonTreeIndex(UpdateIndex['JsonTreeIndex']):
+    '''Pointer into a JSON tree.'''
     def __init__(self, value: dict) -> None:
         self.value = value
 
@@ -219,8 +247,9 @@ class JsonTreeIndex(UpdateIndex['JsonTreeIndex']):
         return GNMIConfigTree()
 
 
-def verify_update(config: GNMIConfig, path: gnmi.Path, update: gnmi.Update,
-                  minimal_update: UpdateType) -> None:
+def apply_update(config: GNMIConfig, path: gnmi.Path, update: gnmi.Update,
+                 minimal_update: UpdateType) -> None:
+    '''Apply a gNMI Update instance and verify that satisfies the minimal update requirement.'''
     if not minimal_update <= config.update(PathTreeIndex(path.elem, 0, update.val)):
         up_str = f'{make_formatted_path(path)} = {update.val}'
         if minimal_update == UpdateType.STRUCTURE:
@@ -232,6 +261,8 @@ def verify_update(config: GNMIConfig, path: gnmi.Path, update: gnmi.Update,
 
 def apply_response(config: GNMIConfig, response: gnmi.SubscribeResponse,
                    minimal_update: UpdateType = UpdateType.NONE) -> bool:
+    '''Apply a full gNMI SubscribeResponse instance verifying the
+    individual updates satisfy minimal update requirements.'''
     notif = response.update
     have_updates = False
     for update in notif.update:
