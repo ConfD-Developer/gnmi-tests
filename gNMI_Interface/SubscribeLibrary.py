@@ -5,7 +5,8 @@ import threading
 import queue
 from datetime import datetime as dt
 
-from confd_gnmi_common import make_gnmi_path, encoding_str_to_int
+from confd_gnmi_common import make_gnmi_path, encoding_str_to_int, \
+    subscription_mode_str_to_int, stream_mode_str_to_int
 from confd_gnmi_client import ConfDgNMIClient
 from CapabilitiesLibrary import CapabilitiesLibrary
 from gnmi_config import GNMIConfigTree, apply_response, UpdateType
@@ -25,11 +26,10 @@ class Requester(threading.Thread):
         self.client: ConfDgNMIClient = client
         self._slist_queue: queue.Queue[SlistType] = queue.Queue()
         self._response_queue: queue.Queue[gnmi.SubscribeResponse] = queue.Queue()
-        self._responses: t.Optional[gnmi.SubscribeResponse] = None
+        self._responses = self.client.subscribe(self.requests())
         self._runner_error: t.Optional[Exception] = None
 
     def run(self) -> None:
-        self._responses = self.client.subscribe(self.requests())
         try:
             for response in self._responses:
                 self._response_queue.put(response)
@@ -52,8 +52,7 @@ class Requester(threading.Thread):
                 yield gnmi.SubscribeRequest(subscribe=slitem)
             elif isinstance(slitem, gnmi.Poll):
                 yield gnmi.SubscribeRequest(poll=slitem)
-        if self._responses is not None:
-            self._responses.cancel()
+        self._responses.cancel()
 
     def enqueue(self, item: SlistType) -> None:
         self._slist_queue.put(item)
@@ -101,15 +100,21 @@ class SubscribeLibrary(CapabilitiesLibrary):
             self.requester.join(2)
         self.requester = None
 
-    def subscribe(self, mode: str, encoding: str, stream_mode: t.Optional[str] = None) -> None:
+    def subscribe(self, mode: str, encoding: str, stream_mode: t.Optional[str] = None,
+                  sample_period: t.Optional[str] = None) -> None:
         paths = [make_gnmi_path(path) for path in self.paths]
         iencoding = encoding_str_to_int(encoding)
         prefix = make_gnmi_path('')
+        imode = subscription_mode_str_to_int(mode)
         if mode == 'STREAM' and stream_mode is not None:
-            slist = ConfDgNMIClient.make_subscription_list(prefix, paths, mode,
-                                                           iencoding, stream_mode)
+            istr_mode = stream_mode_str_to_int(stream_mode)
+            iperiod_ms = None
+            if sample_period is not None:
+                iperiod_ms = int(sample_period)*1000
+            slist = ConfDgNMIClient.make_subscription_list(prefix, paths, imode,
+                                                           iencoding, istr_mode, iperiod_ms)
         else:
-            slist = ConfDgNMIClient.make_subscription_list(prefix, paths, mode, iencoding)
+            slist = ConfDgNMIClient.make_subscription_list(prefix, paths, imode, iencoding)
         self.requester = Requester(self._client)
         self.requester.start()
         self.requester.enqueue(slist)
@@ -180,14 +185,18 @@ class SubscribeLibrary(CapabilitiesLibrary):
         assert responses, NO_UPDATES
 
     def check_sample_updates(self, period: int, count: int, timeout: int) -> None:
+        '''Check that `count` samples are received in intervals
+        `period` seconds long.  The samples are also required to cover
+        the same tree as the initial sample.
+        '''
         initial_tree = self.get_initial_subscribe_config(timeout)
         for index in range(count):
             sample_tree = GNMIConfigTree()
             sample_msg = f'Sample {index+1} not received within {period} seconds'
             cover_msg = f'Sample {index+1} does not cover the full tree'
-            response = next(self.requester.responses(period, sample_msg))
+            response = next(self.requester.responses(period + timeout, sample_msg))
             apply_response(sample_tree, response, UpdateType.STRUCTURE)
             next_responses = self.requester.responses(timeout, cover_msg)
-            while not initial_tree.covered(sample_tree):
+            while not initial_tree.covered_by(sample_tree):
                 response = next(next_responses)
                 apply_response(sample_tree, response, UpdateType.STRUCTURE)

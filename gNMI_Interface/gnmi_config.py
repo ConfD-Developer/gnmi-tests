@@ -12,6 +12,7 @@ import gnmi_pb2 as gnmi
 
 
 UpIxT = t.TypeVar('UpIxT', bound='UpdateIndex')
+ConfT = t.TypeVar('ConfT', bound='GNMIConfig')
 
 
 class UpdateType(Enum):
@@ -38,6 +39,12 @@ class UpdateType(Enum):
         return self if self.value >= other.value else other
 
 
+def assert_config(config: GNMIConfig, clazz: t.Type[ConfT]) -> ConfT:
+    assert isinstance(config, clazz), \
+        f'expected config update {clazz.type}, received {config.type}'
+    return config
+
+
 class GNMIConfig(ABC, t.Generic[UpIxT]):
     '''Configuration tree representation.'''
     type: t.Optional[str] = None
@@ -47,6 +54,16 @@ class GNMIConfig(ABC, t.Generic[UpIxT]):
 
     @abstractmethod
     def __repr__(self) -> str: ...
+
+    @abstractmethod
+    def covered_by(self, other: GNMIConfig) -> bool:
+        '''Verify that this configuration is covered by the other configuration.
+
+        A configuration tree is covered if the other configuration
+        contains at least the same instances of containers/lists/etc,
+        not necessarily the same values.
+        '''
+        ...
 
 
 class UpdateIndex(ABC, t.Generic[UpIxT]):
@@ -64,9 +81,7 @@ class UpdateIndex(ABC, t.Generic[UpIxT]):
     def new_child(self) -> GNMIConfig[UpIxT]: ...
 
     def rectify_config_type(self, config: GNMIConfig) -> GNMIConfig[UpIxT]:
-        assert isinstance(config, self.config_class()), \
-            f'expected config {self.config_class().type}, received {config.type}'
-        return config
+        return assert_config(config, self.config_class())
 
 
 TreeIndexT = t.Union['PathTreeIndex', 'JsonTreeIndex']
@@ -94,6 +109,11 @@ class GNMIConfigTree(GNMIConfig[TreeIndexT]):
             utype += child.update(subix)
         return utype
 
+    def covered_by(self, other: GNMIConfig[TreeIndexT]) -> bool:
+        config = assert_config(other, GNMIConfigTree)
+        return not self.tree.keys() - config.tree.keys() \
+            and all(sub.covered_by(config.tree[elm]) for elm, sub in self.tree.items())
+
 
 class GNMIConfigList(GNMIConfig['PathListIndex']):
     '''Representation of a list configuration.'''
@@ -119,6 +139,11 @@ class GNMIConfigList(GNMIConfig['PathListIndex']):
             utype = UpdateType.STRUCTURE
         return child.update(subix) + utype
 
+    def covered_by(self, other: GNMIConfig[PathListIndex]) -> bool:
+        config = assert_config(other, GNMIConfigList)
+        return not self.instances.keys() - config.instances.keys() \
+            and all(sub.covered_by(config.instances[key]) for key, sub in self.instances.items())
+
 
 ValueIndexT = t.Union['JsonValueIndex', 'PlainValueIndex']
 
@@ -138,6 +163,10 @@ class GNMIConfigValue(GNMIConfig[ValueIndexT]):
             return UpdateType.NONE
         self.value = ix.value
         return UpdateType.VALUE
+
+    def covered_by(self, other: GNMIConfig[ValueIndexT]) -> bool:
+        assert_config(other, GNMIConfigValue)
+        return True
 
 
 class PathIndex(UpdateIndex[UpIxT]):
@@ -191,7 +220,7 @@ JsonValueT = t.Union[JsonPrimitiveT, t.Dict[str, 'JsonValueT']]
 
 def new_value_index(value: gnmi.TypedValue) \
         -> t.Union[PlainValueIndex, JsonTreeIndex, JsonValueIndex]:
-    '''Create a new index from a value - either plain value or a JSON thing.''' 
+    '''Create a new index from a value - either plain value or a JSON thing.'''
     if value.HasField('json_ietf_val'):
         return new_json_index(json.loads(value.json_ietf_val))
     else:
@@ -268,5 +297,5 @@ def apply_response(config: GNMIConfig, response: gnmi.SubscribeResponse,
     for update in notif.update:
         have_updates = True
         path = add_path_prefix(update.path, notif.prefix)
-        verify_update(config, path, update, minimal_update)
+        apply_update(config, path, update, minimal_update)
     return have_updates

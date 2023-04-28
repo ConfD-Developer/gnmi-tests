@@ -50,7 +50,7 @@ Device closes the stream
 
 Streaming subscription with mode ${stream-mode} with default encoding
     [Documentation]    Start a streaming subscription with given stream mode.
-    Subscribe    STREAM    ${lib_config.default_encoding}    ${stream-mode}
+    Subscribe    STREAM    ${lib_config.default_encoding}    ${stream-mode}    ${SAMPLE-PERIOD}
 
 Device sends ON_CHANGE updates
     [Documentation]    Verify the device keeps sending ON_CHANGE updates for
