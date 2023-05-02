@@ -297,5 +297,5 @@ def apply_response(config: GNMIConfig, response: gnmi.SubscribeResponse,
     for update in notif.update:
         have_updates = True
         path = add_path_prefix(update.path, notif.prefix)
-        verify_update(config, path, update, minimal_update)
+        apply_update(config, path, update, minimal_update)
     return have_updates
