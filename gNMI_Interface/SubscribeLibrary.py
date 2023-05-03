@@ -11,6 +11,8 @@ from confd_gnmi_client import ConfDgNMIClient
 from CapabilitiesLibrary import CapabilitiesLibrary
 from gnmi_config import GNMIConfigTree, apply_response, UpdateType
 
+from robot.api import logger
+
 import grpc
 import gnmi_pb2 as gnmi
 
@@ -55,9 +57,13 @@ class Requester(threading.Thread):
         self._responses.cancel()
 
     def enqueue(self, item: SlistType) -> None:
+        if item is not None:
+            logger.trace(f'new subscription request {item}')
+        else:
+            logger.trace('subscription requests done')
         self._slist_queue.put(item)
 
-    def raw_responses(self, timeout: int) -> t.Iterator[gnmi.SubscribeResponse]:
+    def _raw_responses(self, timeout: int) -> t.Iterator[gnmi.SubscribeResponse]:
         if not self.is_alive():
             # yield only queued updates
             for _ in range(self._response_queue.qsize()):
@@ -69,6 +75,11 @@ class Requester(threading.Thread):
                 yield response
             self.join()
         assert self._runner_error is None, 'server failed with ' + str(self._runner_error)
+
+    def raw_responses(self, timeout: int) -> t.Iterator[gnmi.SubscribeResponse]:
+        for response in self._raw_responses(timeout):
+            logger.trace(f'subscription response {response}')
+            yield response
 
     def responses(self, timeout: int, msg: t.Optional[str] = None) \
             -> t.Iterator[gnmi.SubscribeResponse]:
