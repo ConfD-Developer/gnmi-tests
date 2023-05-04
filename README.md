@@ -1,7 +1,12 @@
 # gNMI Telemetry testing tool
 
-This project is intended as a tool to help with automation testing of a telemetry capabilities of target device.
-It uses a [Robot Framework](https://robotframework.org/) (a generic open source automation framework) to implement range of test suites and
+gNMI is becoming the network management protocol of choice for Model-Driven Telemetry.  Regardless how well the gNMI Specifications
+may have been defined, there will still be requirements in it that are open for interpretation.  To ensure consistency in gNMI
+telemetry server implementations between vendors and products, interoperability testing will help to identify areas of the
+implementations that are incompliant with the gNMI Specifications.
+
+This project is intended as a tool to help with automated testing of the telemetry capabilities of target devices.
+It uses a [Robot Framework](https://robotframework.org/) (a generic open source automation framework) to implement a range of test suites and
 test cases. These try to identify capabilities of a device to service typical telemetry related gNMI requests.
 
 ## Requirements
