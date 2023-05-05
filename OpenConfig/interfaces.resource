@@ -22,7 +22,7 @@ Iterate interface "config" includes leaf
     ...                Cleanup the gNMI library state after to allow other clean iterations.
     [Arguments]    ${leaf_name}
     DataType set to    CONFIG
-    Get container includes  ${OC_INTERFACES_ROOT}/interface[name=${OC_INTERFACE}]/config  ${leaf_name}
+    Get container includes  /${OC_INTERFACES_PREFIX}interfaces/interface[name=${OC_INTERFACE}]/config  ${leaf_name}
     [Teardown]    Teardown gNMI state
 
 Iterate interface "state" includes leaf
@@ -32,5 +32,5 @@ Iterate interface "state" includes leaf
     ...                Cleanup the gNMI library state after to allow other clean iterations.
     [Arguments]    ${leaf_name}
     DataType set to    STATE
-    Get container includes  ${OC_INTERFACES_ROOT}/interface[name=${OC_INTERFACE}]/state  ${leaf_name}
+    Get container includes  /${OC_INTERFACES_PREFIX}interfaces/interface[name=${OC_INTERFACE}]/state  ${leaf_name}
     [Teardown]    Teardown gNMI state

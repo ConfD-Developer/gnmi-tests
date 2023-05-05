@@ -68,7 +68,7 @@ List "/interfaces/interface" contains at least one record
     [Documentation]    Verify that ``GetRequest`` with ``path=interfaces/interface`` parameter
     ...                receives OK response and contains at least one or more items.
     [Tags]  list
-    Verify Get of  ${OC_INTERFACES_ROOT}/interface
+    Verify Get of  /${OC_INTERFACES_PREFIX}interfaces/interface
     ${count}=  Get last updates count
     Should Not Be Equal As Integers   ${count}  0
 
@@ -78,7 +78,7 @@ Read existing "/interfaces/interface" list entries one by one
     # [Tags]  list  encoding
     [Tags]    unimplemented
     Skip
-    # Verify Get of    ${OC_INTERFACES_ROOT}interface
+    # Verify Get of    /${OC_INTERFACES_PREFIX}interfaces/interface
     # ${updates}=  Last updates
 
 Try reading non-existing list entry from "/interfaces/interface"
@@ -107,7 +107,7 @@ Get "CONFIG" response includes "config" container
     ...                OK response that does include the read/write YANG "config" container.
     [Tags]  config  container
     Given DataType set to    CONFIG
-    When Verify Get of  /interfaces/interface[name=${OC_INTERFACE}]
+    When Verify Get of  /${OC_INTERFACES_PREFIX}interfaces/interface[name=${OC_INTERFACE}]
     Then Check Last Updates Include    config
 
 Get "CONFIG" response does not include "state" container
@@ -115,7 +115,7 @@ Get "CONFIG" response does not include "state" container
     ...                OK response that does not include the read-only YANG "state" container.
     [Tags]  config  container  negative
     Given DataType set to    CONFIG
-    When Verify Get of  ${OC_INTERFACES_ROOT}/interface[name=${OC_INTERFACE}]
+    When Verify Get of  /${OC_INTERFACES_PREFIX}interfaces/interface[name=${OC_INTERFACE}]
     Then Check last updates not include    state
 
 Get "STATE" response includes "state" container
@@ -123,7 +123,7 @@ Get "STATE" response includes "state" container
     ...                OK response that does include the read/write YANG "state" container.
     [Tags]  state  container
     Given DataType set to    STATE
-    When Verify Get of  ${OC_INTERFACES_ROOT}/interface[name=${OC_INTERFACE}]
+    When Verify Get of  /${OC_INTERFACES_PREFIX}interfaces/interface[name=${OC_INTERFACE}]
     Then Check last updates include  state
 
 Get "STATE" response does not include "config" container
@@ -131,7 +131,7 @@ Get "STATE" response does not include "config" container
     ...                OK response that does not include the read-only YANG "config" container.
     [Tags]  state  container  negative
     DataType set to    STATE
-    Verify Get of  ${OC_INTERFACES_ROOT}/interface[name=${OC_INTERFACE}]
+    Verify Get of  /${OC_INTERFACES_PREFIX}interfaces/interface[name=${OC_INTERFACE}]
     Check last updates not include  config
 
 Get "ALL" response includes both "config" and "state" containers
@@ -139,7 +139,7 @@ Get "ALL" response includes both "config" and "state" containers
     ...                OK response that does include both read-write "config" and read-only "state" containers.
     [Tags]  config  state  container
     DataType set to    ALL
-    Verify Get of  ${OC_INTERFACES_ROOT}/interface[name=${OC_INTERFACE}]
+    Verify Get of  /${OC_INTERFACES_PREFIX}interfaces/interface[name=${OC_INTERFACE}]
     Check last updates include  config
     Check last updates include  state
 
