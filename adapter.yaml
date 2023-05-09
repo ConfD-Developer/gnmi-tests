@@ -28,7 +28,8 @@ gnmi_get_paths:
   - /interfaces-state/interface[name=state_if_7]
   - /interfaces-state/interface[name=state_if_10]
 
-oc_interface:
+oc_interfaces_prefix: "openconfig-interfaces:"
+oc_interface: GigabitEthernet1/1/1
 
 oc-interface-paths:
   /openconfig-interfaces:interfaces/interface/config:
