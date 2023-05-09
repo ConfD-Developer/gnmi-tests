@@ -185,9 +185,10 @@ class SubscribeLibrary(CapabilitiesLibrary):
         assert responses, NO_UPDATES
 
     def check_sample_updates(self, period: int, count: int, timeout: int) -> None:
-        '''Check that `count` samples are received in `period`
-        intervals.  The samples are also required to cover the same
-        tree as the initial sample.'''
+        '''Check that `count` samples are received in intervals
+        `period` seconds long.  The samples are also required to cover
+        the same tree as the initial sample.
+        '''
         initial_tree = self.get_initial_subscribe_config(timeout)
         for index in range(count):
             sample_tree = GNMIConfigTree()
