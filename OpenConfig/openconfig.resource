@@ -1,7 +1,7 @@
 *** Settings ***
 Documentation    Resources specific to OpenConfig telemetry testing.
-Library          ../gNMI_Interface/GetLibrary.py  ${LIB_CONFIG}
-Resource    ../gNMI_Interface/gNMIClient.resource
+Library          ../General_gNMI/GetLibrary.py  ${LIB_CONFIG}
+Resource    ../General_gNMI/gNMIClient.resource
 
 
 *** Keywords ***

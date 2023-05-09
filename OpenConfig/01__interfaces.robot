@@ -8,7 +8,7 @@ Test Tags        OpenConfig  interfaces
 Resource         openconfig.resource
 Resource         interfaces.resource
 
-Resource         ../gNMI_Interface/gNMIClient.resource
+Resource         ../General_gNMI/gNMIClient.resource
 Suite Setup      Setup gNMI Client
 Suite Teardown   Close gNMI Client
 Test Teardown    Teardown gNMI state
