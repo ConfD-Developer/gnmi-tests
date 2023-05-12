@@ -1,6 +1,6 @@
 *** Settings ***
 Documentation    Keywords specific to OpenConfig Subscribe tests.
-Resource         ../gNMI_Interface/Subscribe.resource
+Resource         ../General_gNMI/Subscribe.resource
 
 
 *** Keywords ***

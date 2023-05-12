@@ -1,9 +1,9 @@
 *** Settings ***
 Documentation    Resources specific to ``openconfig-interfaces.yang`` model.
 Library    Collections
-Library    ../gNMI_Interface/GetLibrary.py  ${LIB_CONFIG}
-Resource   ../gNMI_Interface/gNMIClient.resource
-Resource   ../gNMI_Interface/BasicGet.resource
+Library    ../General_gNMI/GetLibrary.py  ${LIB_CONFIG}
+Resource   ../General_gNMI/gNMIClient.resource
+Resource   ../General_gNMI/BasicGet.resource
 
 
 *** Keywords ***
