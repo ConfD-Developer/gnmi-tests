@@ -56,6 +56,8 @@ When a test run is executed and finished, it creates few files by default (unles
     it links into the following `log.html` file for details...
 - `log.html` - detailed log for all the steps executed in test run
 
+> &#9888; - Please note that log files will include your username and plaintext password configured for connecting to the target device (as described in further section on `.yaml` files).
+
 ### PYTHONPATH and executing tests
 
 Whether you run tests against "real" device, or the "ConfD adapter" (see further), you need properly set Python environment for tests to execute correctly.
