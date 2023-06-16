@@ -21,7 +21,7 @@ class GetRequestParameters:
         if self.paths is not None:
             paths = self.paths
         else:
-            paths = default_path if default_path is not None else []
+            paths =  [default_path] if default_path is not None else []
         if self.encoding is not None:
             encoding = self.encoding
         else:
@@ -163,6 +163,8 @@ class GetLibrary(CapabilitiesLibrary):
 
     def _last_updates_not_empty(self) -> bool:
         last_updates = self.get_last_flattened_updates()
+        if not last_updates:
+            return False
         non_empty_contents = not any(update.is_empty() for update in last_updates)
         return non_empty_contents
 
