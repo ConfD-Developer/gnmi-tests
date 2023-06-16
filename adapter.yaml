@@ -19,7 +19,7 @@ lib_config:
   default_path:
 
 # ---- generic gNMI test cases settings
-get-sanity-path: /if:interfaces  # XPath to data that device supports, for simple small-scale sanity GetRequest
+get_sanity_path: /if:interfaces  # XPath to data that device supports, for simple small-scale sanity GetRequest
 
 gnmi_get_paths:
   - /interfaces-state/interface[name=state_if_2]/name

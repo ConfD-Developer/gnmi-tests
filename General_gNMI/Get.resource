@@ -43,8 +43,8 @@ Iterate non-empty get path "${path}"
     [Teardown]    Teardown gNMI state
 
 Try getting sanity path
-    [Documentation]    Try reading sanity data from path declared by YAML variable "get-sanity-path".
+    [Documentation]    Try reading sanity data from path declared by YAML variable "get_sanity_path".
     ...                Fails the test if variable is not set.
-    Should Be String    ${get-sanity-path}  Missing get-sanity-path variable to get some device data.
-    When Verify Get of  ${get-sanity-path}
+    Should Be String    ${get_sanity_path}  Missing "get_sanity_path" variable to get some device data.
+    When Verify Get of  ${get_sanity_path}
     Then Check last updates not empty
