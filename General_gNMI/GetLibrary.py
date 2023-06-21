@@ -191,3 +191,18 @@ class GetLibrary(CapabilitiesLibrary):
           """
         projections = [f"[{name}={value}]" for [name, value] in key_dictionary.items()]
         return "".join(projections)
+
+    @staticmethod
+    def count_prefix_path_steps(full_path: str):
+        """ Return number of nodes (separated with \'/\') on the specified path string. """
+        words = full_path.split('/')
+        return len(words) - 1
+
+    @staticmethod
+    def split_prefix_path(full_path: str, step: int):
+        """ Split the input path at specified index/slash position,
+            and return the two parts - leading \"prefix\" and the rest, \"path\". """
+        words = full_path.split('/')
+        prefix = "/".join(words[:step+1])
+        path = "/".join(words[step+1:])
+        return (prefix, path)

@@ -41,3 +41,22 @@ Iterate non-empty get path "${path}"
     When Verify Get of  ${path}
     Then Check last updates not empty
     [Teardown]    Teardown gNMI state
+
+Iterate prefix ${prefix} with path ${path}
+    [Documentation]    Retrieve data with prefix + path parameters.
+    ...                Verify that response contains some/any data, and is not empty.
+    Given Prefix set to  ${prefix}
+    And Paths Include  ${path}
+    When Dispatch Get Request
+    Then Check last updates not empty
+    [Teardown]    Teardown gNMI state
+
+Test prefix/path combinations of ${full_path}
+    [Documentation]    Iterate splitting of input path into two parts.
+    ...                Verify that various combinations of prefix + path work
+    ...                for an input path.
+    ${steps} =  Count prefix path steps  ${full_path}
+    FOR  ${step}  IN RANGE  1  ${steps}
+        ${prefix}  ${path} =  Split prefix path  ${full_path}  ${step}
+        Iterate prefix ${prefix} with path ${path}
+    END

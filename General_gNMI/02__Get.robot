@@ -29,6 +29,12 @@ Parameter "prefix" on root path
     When Dispatch Get Request
     Then Should received OK Response
 
+Parameter "prefix" with "path" combination
+    [Documentation]    Test the device defined nested path defined by "" variable in device YAML file.
+    ...                Iterate the path and split it into various combinations of prefix + path parameters.
+    [Tags]  prefix  path
+    Test prefix/path combinations of ${get_prefix_path}
+
 Parameter "type" - valid values return OK response
     [Documentation]    Check that all the possible ``DataType`` values can be used
     ...                as "type" parameter of ``GetRequest``
