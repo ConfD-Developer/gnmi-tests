@@ -4,7 +4,8 @@ import json
 from typing import Dict, List, Optional
 from robot.api.logger import trace
 from CapabilitiesLibrary import CapabilitiesLibrary
-from confd_gnmi_common import _make_string_path, datatype_str_to_int, encoding_str_to_int
+from confd_gnmi_common import _make_string_path, datatype_str_to_int, \
+    encoding_str_to_int, make_gnmi_path, split_gnmi_path
 
 
 @dataclass
@@ -163,8 +164,9 @@ class GetLibrary(CapabilitiesLibrary):
 
     def _last_updates_not_empty(self) -> bool:
         last_updates = self.get_last_flattened_updates()
-        non_empty_contents = not any(update.is_empty() for update in last_updates)
-        return non_empty_contents
+        if not last_updates:
+            return False
+        return not any(update.is_empty() for update in last_updates)
 
     def check_last_updates_not_empty(self) -> bool:
         """ Verify that last updates are not empty, and include some data. """
@@ -195,14 +197,12 @@ class GetLibrary(CapabilitiesLibrary):
     @staticmethod
     def count_prefix_path_steps(full_path: str):
         """ Return number of nodes (separated with \'/\') on the specified path string. """
-        words = full_path.split('/')
-        return len(words) - 1
+        elem_path = make_gnmi_path(full_path)
+        return len(elem_path.elem) - 1
 
     @staticmethod
-    def split_prefix_path(full_path: str, step: int):
+    def split_prefix_path(xpath_path: str, step: int):
         """ Split the input path at specified index/slash position,
             and return the two parts - leading \"prefix\" and the rest, \"path\". """
-        words = full_path.split('/')
-        prefix = "/".join(words[:step+1])
-        path = "/".join(words[step+1:])
+        (prefix, path) = split_gnmi_path(xpath_path, step)
         return (prefix, path)

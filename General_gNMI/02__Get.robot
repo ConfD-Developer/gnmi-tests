@@ -30,8 +30,8 @@ Parameter "prefix" on root path
     Then Should received OK Response
 
 Parameter "prefix" with "path" combination
-    [Documentation]    Test the device defined nested path defined by "" variable in device YAML file.
-    ...                Iterate the path and split it into various combinations of prefix + path parameters.
+    [Documentation]    Test the nested data path, declared by variable `get_prefix_path` in device YAML file.
+    ...                Split the path into various combinations of prefix + path parameters of GetRequest.
     [Tags]  prefix  path
     Test prefix/path combinations of ${get_prefix_path}
 
