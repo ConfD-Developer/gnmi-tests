@@ -45,6 +45,6 @@ Iterate non-empty get path "${path}"
 Try getting sanity path
     [Documentation]    Try reading sanity data from path declared by YAML variable "get_sanity_path".
     ...                Fails the test if variable is not set.
-    Should Be String    ${get_sanity_path}  Missing "get_sanity_path" variable to get some device data.
+    Should Be String    ${get_sanity_path}  Variable "get_sanity_path" has to be string (XPath).
     When Verify Get of  ${get_sanity_path}
     Then Check last updates not empty
