@@ -14,12 +14,19 @@ Test Teardown    Teardown gNMI state
 
 
 *** Test Cases ***
-Sanity check for no parameters in GetRequest check
-    [Documentation]    Make a sanity "no parameters" request to "ping" server for OK response,
-    ...                ignoring the actual payload.
+Sanity check for device defined path
+    [Documentation]    Make sanity request to a "path" on device guaranteed to return some/any data.
     [Tags]    sanity
+    Try getting sanity path
+
+Parameter "path" set for root - all data
+    [Documentation]    Try a request with "path" param set to '/',
+    ...                ignoring the actual payload returned.
+    ...                This may be a costly operation depending on device feature/model set.
+    [Tags]    path  costly
+    Given Paths include  /
     When Dispatch Get Request
-    Then Should received OK Response
+    Then Should Received Ok Response
 
 Parameter "prefix" on root path
     [Documentation]    Try getting whole config by setting ``prefix=/`` parameter.
@@ -114,7 +121,7 @@ Get configured paths
     [Documentation]    Verify that generic request for an XPaths declared in config file
     ...                can be issued against server, and that non-empty OK response with
     ...                some data is received.
-    [Tags]    paths
+    [Tags]    path
     [Template]    Iterate non-empty get path "${path}"
     FOR  ${path}  IN  @{GNMI_GET_PATHS}
         ${path}
