@@ -42,9 +42,21 @@ Iterate non-empty get path "${path}"
     Then Check last updates not empty
     [Teardown]    Teardown gNMI state
 
-Try getting sanity path
-    [Documentation]    Try reading sanity data from path declared by YAML variable "get_sanity_path".
-    ...                Fails the test if variable is not set.
-    Should Be String    ${get_sanity_path}  Variable "get_sanity_path" has to be string (XPath).
-    When Verify Get of  ${get_sanity_path}
+Iterate prefix ${prefix} with path ${path}
+    [Documentation]    Retrieve data with prefix + path parameters.
+    ...                Verify that response contains some/any data, and is not empty.
+    Given Prefix set to  ${prefix}
+    And Paths Include  ${path}
+    When Dispatch Get Request
     Then Check last updates not empty
+    [Teardown]    Teardown gNMI state
+
+Test prefix/path combinations of ${full_path}
+    [Documentation]    Iterate splitting of input path into two parts.
+    ...                Verify that various combinations of prefix + path work
+    ...                for an input path.
+    ${steps} =  Count prefix path steps  ${full_path}
+    FOR  ${step}  IN RANGE  1  ${steps}
+        ${prefix}  ${path} =  Split prefix path  ${full_path}  ${step}
+        Iterate prefix ${prefix} with path ${path}
+    END

@@ -17,7 +17,9 @@ Test Teardown    Teardown gNMI state
 Sanity check for device defined path
     [Documentation]    Make sanity request to a "path" on device guaranteed to return some/any data.
     [Tags]    sanity
-    Try getting sanity path
+    Given Should Be String    ${GET_SANITY_PATH}  Variable "get_sanity_path" has to be string (XPath).
+    When Verify Get of  ${GET_SANITY_PATH}
+    Then Check last updates not empty
 
 Parameter "path" set for root - all data
     [Documentation]    Try a request with "path" param set to '/',
@@ -35,6 +37,12 @@ Parameter "prefix" on root path
     Given Prefix set to  /
     When Dispatch Get Request
     Then Should received OK Response
+
+Parameter "prefix" with "path" combination
+    [Documentation]    Test the nested data path, declared by variable `get_prefix_path` in device YAML file.
+    ...                Split the path into various combinations of prefix + path parameters of GetRequest.
+    [Tags]  prefix  path
+    Test prefix/path combinations of ${get_prefix_path}
 
 Parameter "type" - valid values return OK response
     [Documentation]    Check that all the possible ``DataType`` values can be used
