@@ -17,7 +17,9 @@ Test Teardown    Teardown gNMI state
 Sanity check for device defined path
     [Documentation]    Make sanity request to a "path" on device guaranteed to return some/any data.
     [Tags]    sanity
-    Try getting sanity path
+    Given Should Be String    ${GET_SANITY_PATH}  Variable "get_sanity_path" has to be string (XPath).
+    When Verify Get of  ${GET_SANITY_PATH}
+    Then Check last updates not empty
 
 Parameter "path" set for root - all data
     [Documentation]    Try a request with "path" param set to '/',
