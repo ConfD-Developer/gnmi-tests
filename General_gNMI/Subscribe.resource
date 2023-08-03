@@ -35,6 +35,19 @@ Subscribe ONCE with supported encodings
         Close subscription
     END
 
+Subscribe ONCE with supported encodings without aggregation
+    [Documentation]    For each encoding claimed to be supported by the device, verify
+    ...   a subscription can be created and a response is sent, updates are not
+    ...   aggregated
+    [Tags]    robot:continue-on-failure
+    @{encodings}=    Last supported encodings
+    FOR    ${encoding}    IN    @{encodings}
+        Given subscription ONCE with encoding ${encoding}
+        Check updates no aggr   ${SUBSCRIPTION-TIMEOUT}   ${encoding}
+        Close subscription
+    END
+
+
 Device capabilities
     [Documentation]    Retrieve device capabilities.
     Get capabilities from device

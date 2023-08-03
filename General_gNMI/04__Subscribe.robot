@@ -29,6 +29,15 @@ Subscribe ONCE with supported "encoding" values
     And subscription paths    ${GET-PATH}
     Then subscribe ONCE with supported encodings
 
+No aggregation in ONCE subscription with supported "encoding" values
+    [Tags]    sanity
+    [Documentation]    Verify that the device is able to respond correctly for
+    ...    all declared encodings.
+    Given device capabilities
+    And subscription paths    ${GET-PATH}
+    Then subscribe ONCE with supported encodings without aggregation
+
+
 Two subscriptions in single request with the same "path"
     [Documentation]    Verify that the device can handle ONCE subscription
     ...    with two identical paths.
