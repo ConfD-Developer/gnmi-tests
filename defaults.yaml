@@ -1,4 +1,4 @@
-get-path: /ietf-interfaces:interfaces
+get-path: /ietf-interfaces:interfaces  # get-path must contain more than one element (for aggregation test)
 secondary-path: /route-status:route-status/route
 
 subscription-timeout: 5

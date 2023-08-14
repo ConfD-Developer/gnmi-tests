@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import _queue
+import json
 import typing as t
 import threading
 import queue
@@ -207,9 +208,16 @@ class SubscribeLibrary(CapabilitiesLibrary):
         try:
             for response in self.requester.raw_responses(timeout):
                 if not response.sync_response:
-                    assert (len([*response.update.update]) > 1)
-                    if encoding_str_to_int(encoding) == gnmi_pb2.Encoding.JSON_IETF:
-                        pass  # TODO verify each update is of primitive type
+                    if encoding == gnmi_pb2.Encoding.JSON_IETF:
+                        count = 0
+                        for count, u in enumerate(response.update.update,
+                                                  start=1):
+                            val = json.loads(u.val.json_ietf_val)
+                            if isinstance(val, list) and len(val):
+                                assert not any(isinstance(x, dict) for x in val)
+                            else:
+                                assert not isinstance(val, dict)
+                        assert (count > 1)
                 else:
                     break
         except _queue.Empty:

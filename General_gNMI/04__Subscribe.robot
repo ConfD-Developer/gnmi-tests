@@ -32,7 +32,7 @@ Subscribe ONCE with supported "encoding" values
 No aggregation in ONCE subscription with supported "encoding" values
     [Tags]    sanity
     [Documentation]    Verify that the device is able to respond correctly for
-    ...    all declared encodings.
+    ...    all declared encodings. Verify the data is not aggregated.
     Given device capabilities
     And subscription paths    ${GET-PATH}
     Then subscribe ONCE with supported encodings without aggregation
