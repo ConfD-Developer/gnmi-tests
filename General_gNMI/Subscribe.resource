@@ -35,7 +35,7 @@ Subscribe ONCE with supported encodings
         Close subscription
     END
 
-Subscribe ONCE with supported encodings without aggregation
+Subscribe ONCE does not aggregate by default
     [Documentation]    For each encoding claimed to be supported by the device, verify
     ...   a subscription can be created and a response is sent, updates are not
     ...   aggregated
@@ -43,7 +43,7 @@ Subscribe ONCE with supported encodings without aggregation
     @{encodings}=    Last supported encodings
     FOR    ${encoding}    IN    @{encodings}
         Given subscription ONCE with encoding ${encoding}
-        Check updates no aggr   ${SUBSCRIPTION-TIMEOUT}   ${encoding}
+        Check updates not aggregated   ${SUBSCRIPTION-TIMEOUT}   ${encoding}
         Close subscription
     END
 

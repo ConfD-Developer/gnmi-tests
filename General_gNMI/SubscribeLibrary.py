@@ -204,7 +204,7 @@ class SubscribeLibrary(CapabilitiesLibrary):
                 response = next(next_responses)
                 apply_response(sample_tree, response, UpdateType.STRUCTURE)
 
-    def check_updates_no_aggr(self, timeout: int, encoding: str) -> None:
+    def check_updates_not_aggregated(self, timeout: int, encoding: str) -> None:
         try:
             for response in self.requester.raw_responses(timeout):
                 if not response.sync_response:
@@ -213,7 +213,7 @@ class SubscribeLibrary(CapabilitiesLibrary):
                         for count, u in enumerate(response.update.update,
                                                   start=1):
                             val = json.loads(u.val.json_ietf_val)
-                            if isinstance(val, list) and len(val):
+                            if isinstance(val, list):
                                 assert not any(isinstance(x, dict) for x in val)
                             else:
                                 assert not isinstance(val, dict)
