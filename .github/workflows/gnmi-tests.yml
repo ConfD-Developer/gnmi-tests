@@ -1,0 +1,42 @@
+# This workflow will install Python dependencies, run tests
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: gnmi-pytest-tests
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ '3.11', '3.10', '3.9' ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Checkout gnmi-tools
+        uses: actions/checkout@v3
+        with:
+           repository: 'ConfD-Developer/gnmi-tools'
+           path: 'gnmi-tools'
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      - name: Build gNMI stubs
+        run:
+          python -m grpc_tools.protoc -Ignmi-tools/src/proto --python_out=gnmi-tools/src --grpc_python_out=gnmi-tools/src gnmi-tools/src/proto/gnmi.proto gnmi-tools/src/proto/gnmi_ext.proto
+      - name: Start gNMI demo server
+        run:
+          python gnmi-tools/src/confd_gnmi_server.py -t demo --insecure &
+      - name: Wait for server port to start listening
+        run:
+          for ((i=0; i<20; i++)); do nc -z localhost 50061 && break; sleep 0.1; done
+      - name: Test with Robot
+        run: |                  
+          export PYTHONPATH=./gnmi-tools/src:./:./General_gNMI:${PYTHONPATH}
+          robot --variablefile adapter.yaml --variablefile interfaces.yaml --variablefile defaults.yaml --include sanity --exclude OpenConfig  ./
+
