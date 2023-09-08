@@ -3,7 +3,7 @@
 gNMI is becoming the network management protocol of choice for Model-Driven Telemetry.  Regardless how well the gNMI Specifications
 may have been defined, there will still be requirements in it that are open for interpretation.  To ensure consistency in gNMI
 telemetry server implementations between vendors and products, interoperability testing will help to identify areas of the
-implementations that are incompliant with the gNMI Specifications.
+implementations that are not compliant with the gNMI Specifications.
 
 This project is intended as a tool to help with automated testing of the telemetry capabilities of target devices.
 It uses a [Robot Framework](https://robotframework.org/) (a generic open source automation framework) to implement a range of test suites and
@@ -49,7 +49,7 @@ If needed, see "`python -m robot.testdoc --help`" for possible output configurat
 
 ## Running the tests
 
-To run any tests, we you need a target device configuration file first.
+To run any tests, you need a target device configuration file first.
 
 When a test run is executed and finished, it creates few files by default (unless modified by `robot` command parameters).
 - `report.html` - summary of all the tests suites/cases and their results;<br/>
@@ -64,7 +64,7 @@ Whether you run tests against "real" device, or the "ConfD adapter" (see further
 
 <span style="background-color:red">TODO - think of some executor script to save user from having to declare PYTHONPATH?</span>
 
-For our case, this implies setting the **`PYTHONPATH`** variable for underlying python code to find all the required items spread across various directories of the project. Assuming you run the tests from current directory, you need to have following set for tests to run:
+For our case, this implies setting the **`PYTHONPATH`** variable for underlying python code to find all the required items spread across various directories of the project. Assuming you run the tests from current directory, you need to have the following set for tests to run:
 
 ```bash
 PYTHONPATH=../gnmi-tools/src:./:./General_gNMI
@@ -122,7 +122,7 @@ This results in creation of previously mentioned log files of interest - `report
 
 You can run tests without having any target device, e.g. to see an example test outputs/logs. You can do this by using the so-called "**ConfD gNMI adapter**" as a target device.
 
-ConfD gNMI adapter serves as an proof-of-concept implementation of gNMI enabled device. It utilizes the ConfD to run and service the model-specific requests for some of OpenConfig standard models. It includes a simple gNMI server written in Python to "proxy' the incoming gNMI requests into the ConfD database. It can also in in so called "demo" mode without actual ConfD demon required/running.
+ConfD gNMI adapter serves as a proof-of-concept implementation of gNMI enabled device. It utilizes the ConfD to run and service the model-specific requests for some of OpenConfig standard models. It includes a simple gNMI server written in Python to "proxy" the incoming gNMI requests into the ConfD database. It can also in so-called "demo" mode without actual ConfD demon required/running.
 
 For details on the tools supporting these ROBOT test suites, you can see the `gnmi-tools`'s [README file](https://github.com/ConfD-Developer/gnmi-tools).
 
@@ -136,17 +136,17 @@ Quick command list to copy & test before digging to referred document:
 
   - with ConfD available (adapter API mode):
     ```
-    make clean all start
-    ../gnmi-tools/src/confd_gnmi_server.py -t api  --insecure
+    make -C ../gnmi-tools stop clean all start
+    ../gnmi-tools/src/confd_gnmi_server.py -t confd --insecure
     ```
 
   - or without ConfD (adapter DEMO mode):
     ```
-    make clean gnmi_proto
-    ./gnmi-tools/src/confd_gnmi_server.py -t demo  --insecure
+    make -C ../gnmi-tools clean gnmi_proto
+    ../gnmi-tools/src/confd_gnmi_server.py -t demo --insecure
     ```
 - run tests in other console:
 
     ```
-    PYTHONPATH=../gnmi-tools/src:./:./General_gNMI robot --variablefile adapter.yaml --include sanity ./
+    PYTHONPATH=../gnmi-tools/src:./:./General_gNMI robot --variablefile adapter.yaml --variablefile interfaces.yaml --variablefile defaults.yaml --include sanity ./
     ```

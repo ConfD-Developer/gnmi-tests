@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import _queue
+import json
 import typing as t
 import threading
 import queue
 from datetime import datetime as dt
 
+import gnmi_pb2
 from confd_gnmi_common import make_gnmi_path, encoding_str_to_int, \
     subscription_mode_str_to_int, stream_mode_str_to_int
 from confd_gnmi_client import ConfDgNMIClient
@@ -200,3 +203,22 @@ class SubscribeLibrary(CapabilitiesLibrary):
             while not initial_tree.covered_by(sample_tree):
                 response = next(next_responses)
                 apply_response(sample_tree, response, UpdateType.STRUCTURE)
+
+    def check_updates_not_aggregated(self, timeout: int, encoding: str) -> None:
+        try:
+            for response in self.requester.raw_responses(timeout):
+                if not response.sync_response:
+                    if encoding == gnmi_pb2.Encoding.JSON_IETF:
+                        count = 0
+                        for count, u in enumerate(response.update.update,
+                                                  start=1):
+                            val = json.loads(u.val.json_ietf_val)
+                            if isinstance(val, list):
+                                assert not any(isinstance(x, dict) for x in val)
+                            else:
+                                assert not isinstance(val, dict)
+                        assert (count > 1)
+                else:
+                    break
+        except _queue.Empty:
+            pass
